@@ -58,6 +58,18 @@ public:
         return begin() + writerIndex;
     }
 
+    // 写入之后向后移动写缓存指针位置
+    void hasWritten(size_t len) {
+        assert(len <= writeableBytes());
+        writerIndex += len;
+    }
+
+    // 向前移动写指针位置
+    void unwrite(size_t len) {
+        assert(len <= readableBytes());
+        writerIndex -= len;
+    }
+
     // 交换
     void swap(Buffer &rhs) {
         buffer.swap(rhs.buffer);
@@ -142,11 +154,38 @@ public:
         return StringPiece(peek(), static_cast<int>(readableBytes()));
     }
 
-    // 追加
-    void append(const StringPiece &str) {
-//        append(str.data(), str.size());
+    void ensureWriteableBytes(size_t len) {
+        if (writeableBytes() < len) {
+            makeSpace(len);
+        }
+        assert(writeableBytes() >= len);
     }
 
+    // 追加
+    void append(const StringPiece &str) {
+        append(str.data(), str.size());
+    }
+
+    void append(const char *data, size_t len) {
+        ensureWriteableBytes(len);
+        std::copy(data, data + len, beginWrite());
+        hasWritten(len);
+    }
+
+    void append(const void *data, size_t len) {
+        append(static_cast<const char *>(data), len);
+    }
+
+    void shrink(size_t reserve) {
+        Buffer other;
+        other.ensureWriteableBytes(readableBytes() + reserve);
+        other.append(toStringPiece());
+        swap(other);
+    }
+
+    size_t internalCapacity() const {
+        return buffer.capacity();
+    }
 
 
 private:
@@ -161,7 +200,22 @@ private:
         return &(*buffer.begin());
     }
 
-    //
+    // buffer空间变换
+    void makeSpace(size_t len) {
+        // 可写空间和头部预留空间之和小于待写入长度和头部预留之和时说明空间不够,需要分配
+        if (writeableBytes() + prependBytes() < len + kCheapPrepend) {
+            buffer.resize(writerIndex + len); // 需要分配当前下标加上长度这么大的空间
+        } else {
+            // 说明内部空间够用,只是存在内存碎片进行内部腾挪处理就可以满足要求使用
+            // 将读缓存诺挪到buffer前边,后边的留作写缓存
+            assert(kCheapPrepend < readerIndex);
+            size_t readable = readableBytes();
+            std::copy(begin() + readerIndex, begin() + writerIndex, begin() + kCheapPrepend);
+            readerIndex = kCheapPrepend;
+            writerIndex = kCheapPrepend + readable;
+            assert(readable == readableBytes());
+        }
+    }
 
 private:
     std::vector<char> buffer;  // buffer保存的地方
