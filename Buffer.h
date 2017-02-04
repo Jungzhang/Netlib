@@ -1,11 +1,11 @@
-/*************************************************************************
-	> File Name: Buffer.h
-	> Author: Jung
-	> Mail: jungzhang@xiyoulinux.org
-	> Description:
- ************************************************************************/
-#ifndef _NETLIB_BUFFER_H
-#define _NETLIB_BUFFER_H
+/*********************************************
+* >Author: Jung
+* >Email: jungzhang@xiyoulinux.org
+* >Description:
+**********************************************/
+
+#ifndef NETLIB_BUFFER_H
+#define NETLIB_BUFFER_H
 
 #include <vector>
 #include <algorithm>
@@ -187,6 +187,7 @@ public:
         return buffer.capacity();
     }
 
+    ssize_t readFd(int fd, int *saveErrno);
 
 private:
 
@@ -226,4 +227,4 @@ private:
     static const char kCRLF[];  // \r\n
 };
 
-#endif  // _NETLIB_BUGGER_H
+#endif //NETLIB_BUFFER_H

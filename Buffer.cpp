@@ -1,7 +1,8 @@
-/*************************************************************************
-	> File Name: Buffer.cpp
-	> Author: Jung
-	> Mail: jungzhang@xiyoulinux.org
-	> Description:
- ************************************************************************/
+/*********************************************
+* >Author: Jung
+* >Email: jungzhang@xiyoulinux.org
+* >Created Time: 17-2-4
+* >Description: 
+**********************************************/
 
+#include "Buffer.h"
