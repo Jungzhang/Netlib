@@ -96,7 +96,7 @@ private:
         return data_ + sizeof(data_);
     }
 
-    //
+    // cookies的开始
     static void cookiesStart();
 
     // cookie的末尾
