@@ -1,8 +1,7 @@
 /*********************************************
 * >Author: Jung
 * >Email: jungzhang@xiyoulinux.org
-* >Created Time: 17-2-7
-* >Description: 
+* >Description:
 **********************************************/
 
 #ifndef NETLIB_LOGSTREAM_H
@@ -111,6 +110,48 @@ private:
 
 
 class LogStream {
+public:
+    // <<运算符的一些类型
+    LogStream &operator << (bool v);
+
+    LogStream &operator << (short v);
+    LogStream &operator << (unsigned short v);
+    LogStream &operator << (int v);
+    LogStream &operator << (unsigned int v);
+    LogStream &operator << (long v);
+    LogStream &operator << (unsigned long v);
+    LogStream &operator << (long long v);
+    LogStream &operator << (unsigned long long v);
+
+    LogStream &operator << (const void * v);
+    LogStream &operator << (const char * v);
+    LogStream &operator << (const unsigned char * v);
+
+    LogStream &operator << (float v);
+    LogStream &operator << (double v);
+
+    LogStream &operator << (char v);
+
+    LogStream &operator << (const std::string &v);
+    LogStream &operator << (const StringPiece &v);
+
+    template <int SIZE>
+    LogStream &operator << (const FixedBuffer<SIZE> &v);
+
+    void append(const char *data, int len);
+    template <int SIZE>
+    const FixedBuffer<SIZE> &buffer() const ;
+    void resetBuffer();
+
+private:
+    template <typename T>
+    void formatInteger(T);
+
+private:
+    static const int kSmallBuffer  = 4000;
+    static const int kLargeBuffer  = 4000 * 1000;
+    static const int kMaxNumericSize = 32;
+    FixedBuffer<kSmallBuffer> buffer_;
 
 };
 
