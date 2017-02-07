@@ -95,13 +95,14 @@ private:
         return data_ + sizeof(data_);
     }
 
-    // cookies的开始
+    // cookies的开始标记(被实现为一个空函数)
     static void cookiesStart();
 
-    // cookie的末尾
+    // cookie的末尾标记(被实现为一个空函数)
     static void cookiesEnd();
 
 private:
+    // 标记缓存在内存中还未写入磁盘,将来需要在coredump中寻找的
     static void (*cookie)();
     char data_[SIZE];
     char *cur;
