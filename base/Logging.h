@@ -19,7 +19,7 @@ public:
         TRACE,      // 跟踪
         DEBUG,      // debug
         INFO,       // 信息
-        WANR,       // 警告
+        WARN,       // 警告
         ERROR,      // 错误
         FATAL,      // 致命性的
         NUM_LOG_LEVELS
@@ -64,6 +64,7 @@ public:
 
     static LogLevel logLevel();
     static void setLogLevel(LogLevel level);
+
     typedef void (*OutputFunc)(const char *msg, int len);
     typedef void (*Flushfunc)();
     static void setOutput(OutputFunc);
@@ -73,7 +74,8 @@ public:
 private:
     class Impl {
     public:
-        Impl(LogLevel level, int old_error, const SourceFile &file, int line);
+        typedef Logger::LogLevel LogLevel
+        Impl(Logger::LogLevel level, int old_errno, const SourceFile &file, int line);
         void formatTime();
         void finish();
 
@@ -92,8 +94,38 @@ private:
 extern Logger::LogLevel g_logLevel;
 
 inline Logger::LogLevel Logger::logLevel() {
-
+    return g_logLevel;
 }
 
+// 操作日志的宏
+#define LOG_TRACE if (Logger::logLevel() <= Logger::TRACE) \
+Logger(__FILE__, __LINE__, Logger::TRACE, __FUNC__).stream()
+
+#define LOG_DEBUG if (Logger::logLevel() <= Logger::DEBUG) \
+Logger(__FILE__, __LINE__, Logger::DEBUG, __FUNC__).stream()
+
+#define LOG_INFO if (Logger::logLevel() <= Logger::INFO) \
+Logger(__FILE__, __LINE__).stream()
+
+#define LOG_WARN Logger(__FILE__, __LINE__, Logger::WARN).stream()
+#define LOG_ERROR Logger(__FILE__, __LINE__, Logger::ERROR).stream()
+#define LOG_FATAL Logger(__FILE__, __LINE__, Logger::FATAL).stream()
+#define LOG_SYSERR Logger(__FILE__, __LINE__, false).stream()
+#define LOG_SYSFATAL Logger(__FILE__, __LINE__, true).stream()
+
+#define CHECK_NOTNULL(val) \
+CheckNotNull(__FILE__, __LINE__, "'" #val "' Must be non NULL", (val))
+
+const char *strerror_tl(int savedErrno);
+
+template <typename T>
+
+T *CheckNotNull(Logger::SourceFile file, int line, const char *names, T *ptr) {
+    if (ptr == nullptr) {
+        Logger(file, line, Logger::FATAL).stream() << names;
+    }
+
+    return ptr;
+}
 
 #endif //NETLIB_LOGGING_H

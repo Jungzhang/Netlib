@@ -10,9 +10,10 @@
 #include <cstddef>
 #include <cstring>
 #include <string>
+#include <assert.h>
 #include "StringPiece.h"
 
-template <int SIZE>
+template<int SIZE>
 
 class FixedBuffer {
 public:
@@ -104,57 +105,92 @@ private:
 private:
     // 标记缓存在内存中还未写入磁盘,将来需要在coredump中寻找的
     static void (*cookie)();
+
     char data_[SIZE];
     char *cur;
 };
 
 
-
 class LogStream {
 public:
     // <<运算符的一些类型
-    LogStream &operator << (bool v);
+    LogStream &operator<<(bool v);
 
-    LogStream &operator << (short v);
-    LogStream &operator << (unsigned short v);
-    LogStream &operator << (int v);
-    LogStream &operator << (unsigned int v);
-    LogStream &operator << (long v);
-    LogStream &operator << (unsigned long v);
-    LogStream &operator << (long long v);
-    LogStream &operator << (unsigned long long v);
+    LogStream &operator<<(short v);
 
-    LogStream &operator << (const void * v);
-    LogStream &operator << (const char * v);
-    LogStream &operator << (const unsigned char * v);
+    LogStream &operator<<(unsigned short v);
 
-    LogStream &operator << (float v);
-    LogStream &operator << (double v);
+    LogStream &operator<<(int v);
 
-    LogStream &operator << (char v);
+    LogStream &operator<<(unsigned int v);
 
-    LogStream &operator << (const std::string &v);
-    LogStream &operator << (const StringPiece &v);
+    LogStream &operator<<(long v);
 
-    template <int SIZE>
-    LogStream &operator << (const FixedBuffer<SIZE> &v);
+    LogStream &operator<<(unsigned long v);
+
+    LogStream &operator<<(long long v);
+
+    LogStream &operator<<(unsigned long long v);
+
+    LogStream &operator<<(const void *v);
+
+    LogStream &operator<<(const char *v);
+
+    LogStream &operator<<(const unsigned char *v);
+
+    LogStream &operator<<(float v);
+
+    LogStream &operator<<(double v);
+
+    LogStream &operator<<(char v);
+
+    LogStream &operator<<(const std::string &v);
+
+    LogStream &operator<<(const StringPiece &v);
+
+    template<int SIZE>
+    LogStream &operator<<(const FixedBuffer<SIZE> &v);
 
     void append(const char *data, int len);
-    template <int SIZE>
-    const FixedBuffer<SIZE> &buffer() const ;
+
+    template<int SIZE>
+    const FixedBuffer<SIZE> &buffer() const;
+
     void resetBuffer();
 
+public:
+    static const int kSmallBuffer = 4000;
+    static const int kLargeBuffer = 4000 * 1000;
+    static const int kMaxNumericSize = 32;
+
 private:
-    template <typename T>
+    template<typename T>
     void formatInteger(T);
 
 private:
-    static const int kSmallBuffer  = 4000;
-    static const int kLargeBuffer  = 4000 * 1000;
-    static const int kMaxNumericSize = 32;
     FixedBuffer<kSmallBuffer> buffer_;
 
 };
 
+class Fmt {
+public:
+    template<typename T>
+    Fmt(const char *fmt, T val) {
+        length_ = snprintf(buf_, sizeof(buf_), fmt, val);
+        assert(static_cast<size_t>(length_) < sizeof(buf_));
+    }
+
+    const char *data() const { return buf_; }
+    int length() const { return length_; }
+
+private:
+    char buf_[32];
+    int length_;
+};
+
+inline LogStream &operator << (LogStream &s, const Fmt &fmt) {
+    s.append(fmt.data(), fmt.length());
+    return s;
+}
 
 #endif //NETLIB_LOGSTREAM_H
