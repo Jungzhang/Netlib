@@ -12,7 +12,7 @@
 #include "Date.h"
 #include "TimeZone.h"
 
-namespace detail {
+namespace Netlib {
 
     struct Transition {
         time_t gmttime;
@@ -105,17 +105,15 @@ namespace detail {
         FILE *fp_;
     };
 
-    const int kSecondsPerDay = 24*60*60;
-}
+    const int kSecondsPerDay = 24 * 60 * 60;
 
-struct TimeZone::Data {
-    std::string abbreviation;  // 缩写
-    std::vector<std::string> names;
-    std::vector<detail::Transition> transitions;
-    std::vector<detail::LocalTime> localTimes;
-};
+    struct TimeZone::Data {
+        std::string abbreviation;  // 缩写
+        std::vector<std::string> names;
+        std::vector<Netlib::Transition> transitions;
+        std::vector<Netlib::LocalTime> localTimes;
+    };
 
-namespace detail {
     // 读取并解析时区信息文件
     bool readTimeZoneFile(const char *zonefile, struct TimeZone::Data *data) {
         File f(zonefile);
@@ -176,8 +174,7 @@ namespace detail {
         return true;
     }
 
-    inline void fillHMS(unsigned seconds, struct tm* utc)
-    {
+    inline void fillHMS(unsigned seconds, struct tm *utc) {
         utc->tm_sec = seconds % 60;
         unsigned minutes = seconds / 60;
         utc->tm_min = minutes % 60;
@@ -205,95 +202,94 @@ namespace detail {
         }
         return local;
     }
-}
 
-TimeZone::TimeZone(const char *zonefile) : data_(new TimeZone::Data) {
-    if (!detail::readTimeZoneFile(zonefile, data_.get())) {
-        data_.reset();
-    }
-}
 
-TimeZone::TimeZone(int eastOfUtc, const char *name) : data_(new TimeZone::Data) {
-    data_->localTimes.push_back(detail::LocalTime(eastOfUtc, false, 0));
-    data_->abbreviation = name;
-}
-
-struct tm TimeZone::toLocalTime(time_t secondsSinceEpoch) const {
-    struct tm localtime;
-    ::bzero(&localtime, sizeof(localtime));
-    assert(data_ != nullptr);
-    const Data &data(*data_);
-
-    detail::Transition sentry(secondsSinceEpoch, 0, 0);
-    const detail::LocalTime *local = detail::findLocalTime(data, sentry, detail::Comp(true));
-
-    if (local) {
-        time_t locaSeconds = secondsSinceEpoch + local->gmtOffset;
-        ::gmtime_r(&locaSeconds, &localtime);
-        localtime.tm_isdst = local->isDst;
-        localtime.tm_gmtoff = local->gmtOffset;
-        localtime.tm_zone = &data.abbreviation[local->arrbIdx];
-    }
-
-    return localtime;
-}
-
-time_t TimeZone::formLocalTime(const struct tm &t) const {
-    assert(data_ != nullptr);
-    const Data &data(*data_);
-
-    struct tm tmp = t;
-    time_t second = ::timegm(&tmp);
-    detail::Transition sentry(0, second, 0);
-    const detail::LocalTime *local = detail::findLocalTime(data, sentry, detail::Comp(false));
-    if (t.tm_isdst) {
-        struct tm tryTm = toLocalTime(second - local->gmtOffset);
-        if (!tryTm.tm_isdst
-            && tryTm.tm_hour == t.tm_hour
-            && tryTm.tm_min == t.tm_min) {
-            // FIXME: HACK
-            second -= 3600;
+    TimeZone::TimeZone(const char *zonefile) : data_(new TimeZone::Data) {
+        if (!Netlib::readTimeZoneFile(zonefile, data_.get())) {
+            data_.reset();
         }
     }
-    return second - local->gmtOffset;
-}
 
-struct tm TimeZone::toUtcTime(time_t secondsSinceEpoch, bool yday) {
-    struct tm utc;
-    bzero(&utc, sizeof(utc));
-    utc.tm_zone = "GMT";
-    int seconds = static_cast<int>(secondsSinceEpoch % detail::kSecondsPerDay);
-    int days = static_cast<int>(secondsSinceEpoch / detail::kSecondsPerDay);
-    if (seconds < 0) {
-        seconds += detail::kSecondsPerDay;
-        --days;
+    TimeZone::TimeZone(int eastOfUtc, const char *name) : data_(new TimeZone::Data) {
+        data_->localTimes.push_back(Netlib::LocalTime(eastOfUtc, false, 0));
+        data_->abbreviation = name;
     }
-    detail::fillHMS(seconds, &utc);
-    Date date(days + Date::kJulianDayOf1970_01_01);
-    Date::YearMonthDay ymd = date.yearMonthDay();
-    utc.tm_year = ymd.year - 1900;
-    utc.tm_mon = ymd.month - 1;
-    utc.tm_mday = ymd.day;
-    utc.tm_wday = date.weekDay();
 
-    if (yday) {
-        Date startOfYear(ymd.year, 1, 1);
-        utc.tm_yday = date.julianDayNumber() - startOfYear.julianDayNumber();
+    struct tm TimeZone::toLocalTime(time_t secondsSinceEpoch) const {
+        struct tm localtime;
+        ::bzero(&localtime, sizeof(localtime));
+        assert(data_ != nullptr);
+        const Data &data(*data_);
+
+        Netlib::Transition sentry(secondsSinceEpoch, 0, 0);
+        const Netlib::LocalTime *local = Netlib::findLocalTime(data, sentry, Netlib::Comp(true));
+
+        if (local) {
+            time_t locaSeconds = secondsSinceEpoch + local->gmtOffset;
+            ::gmtime_r(&locaSeconds, &localtime);
+            localtime.tm_isdst = local->isDst;
+            localtime.tm_gmtoff = local->gmtOffset;
+            localtime.tm_zone = &data.abbreviation[local->arrbIdx];
+        }
+
+        return localtime;
     }
-    return utc;
-}
 
-time_t TimeZone::formUtcTime(int year, int month, int day,
-                             int hour, int minute, int seconds)
-{
-    Date date(year, month, day);
-    int secondsInDay = hour * 3600 + minute * 60 + seconds;
-    time_t days = date.julianDayNumber() - Date::kJulianDayOf1970_01_01;
-    return days * detail::kSecondsPerDay + secondsInDay;
-}
+    time_t TimeZone::formLocalTime(const struct tm &t) const {
+        assert(data_ != nullptr);
+        const Data &data(*data_);
 
-time_t TimeZone::formUtcTime(const struct tm& utc)
-{
-    return formUtcTime(utc.tm_year + 1900, utc.tm_mon + 1, utc.tm_mday,
-                       utc.tm_hour, utc.tm_min, utc.tm_sec);
+        struct tm tmp = t;
+        time_t second = ::timegm(&tmp);
+        Netlib::Transition sentry(0, second, 0);
+        const Netlib::LocalTime *local = Netlib::findLocalTime(data, sentry, Netlib::Comp(false));
+        if (t.tm_isdst) {
+            struct tm tryTm = toLocalTime(second - local->gmtOffset);
+            if (!tryTm.tm_isdst
+                && tryTm.tm_hour == t.tm_hour
+                && tryTm.tm_min == t.tm_min) {
+                // FIXME: HACK
+                second -= 3600;
+            }
+        }
+        return second - local->gmtOffset;
+    }
+
+    struct tm TimeZone::toUtcTime(time_t secondsSinceEpoch, bool yday) {
+        struct tm utc;
+        bzero(&utc, sizeof(utc));
+        utc.tm_zone = "GMT";
+        int seconds = static_cast<int>(secondsSinceEpoch % Netlib::kSecondsPerDay);
+        int days = static_cast<int>(secondsSinceEpoch / Netlib::kSecondsPerDay);
+        if (seconds < 0) {
+            seconds += Netlib::kSecondsPerDay;
+            --days;
+        }
+        Netlib::fillHMS(seconds, &utc);
+        Date date(days + Date::kJulianDayOf1970_01_01);
+        Date::YearMonthDay ymd = date.yearMonthDay();
+        utc.tm_year = ymd.year - 1900;
+        utc.tm_mon = ymd.month - 1;
+        utc.tm_mday = ymd.day;
+        utc.tm_wday = date.weekDay();
+
+        if (yday) {
+            Date startOfYear(ymd.year, 1, 1);
+            utc.tm_yday = date.julianDayNumber() - startOfYear.julianDayNumber();
+        }
+        return utc;
+    }
+
+    time_t TimeZone::formUtcTime(int year, int month, int day,
+                                 int hour, int minute, int seconds) {
+        Date date(year, month, day);
+        int secondsInDay = hour * 3600 + minute * 60 + seconds;
+        time_t days = date.julianDayNumber() - Date::kJulianDayOf1970_01_01;
+        return days * Netlib::kSecondsPerDay + secondsInDay;
+    }
+
+    time_t TimeZone::formUtcTime(const struct tm &utc) {
+        return formUtcTime(utc.tm_year + 1900, utc.tm_mon + 1, utc.tm_mday,
+                           utc.tm_hour, utc.tm_min, utc.tm_sec);
+    }
 }

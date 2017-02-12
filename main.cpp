@@ -3,7 +3,7 @@
 
 int main() {
 
-    Buffer buffer;
+    Netlib::Buffer buffer;
 
     std::cout << "Hello, World!" << std::endl;
     return 0;
