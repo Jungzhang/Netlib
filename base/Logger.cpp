@@ -25,7 +25,7 @@ namespace Netlib {
     }
 
     int Logger::count_ = 25;
-    const std::string Logger::levelString[5] = {"FATAL", "ERROR", "WARN ", "INFO ", "DEBUG"};
+    const std::string Logger::levelString[5] = {" FATAL", " ERROR", " WARN ", " INFO ", " DEBUG"};
 
     const char *LogBuff::data() const {
         return buffer_;
@@ -59,8 +59,7 @@ namespace Netlib {
         path_ = std::move(path);
         fileName_ = std::move(fileName);
         suffix_ = std::move(suffix);
-        time(&time_);
-        fileFd_ = ::open((path_ + fileName_ + std::to_string(time_) + "." + suffix_).c_str(),
+        fileFd_ = ::open((path_ + fileName_ + "-" + std::to_string(count) + "." + suffix_).c_str(),
                          O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
     }
 
@@ -94,8 +93,8 @@ namespace Netlib {
         if (fileFd_ >= 0) {
             ::close(fileFd_);
         }
-        time(&time_);
-        fileFd_ = ::open((path_ + fileName_ + std::to_string(time_) + "." + suffix_).c_str(),
+        ++count;
+        fileFd_ = ::open((path_ + fileName_ + "-" + std::to_string(count) + "." + suffix_).c_str(),
                          O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
         currentSize_ = 0;
     }
@@ -117,6 +116,10 @@ namespace Netlib {
                                       isRuning_(true),
                                       current_buffer_(new LogBuff), next_buffer_(new LogBuff),
                                       warningFunc_(std::bind(NetlibTemp::initWarningFunc, nullptr)) {}
+
+    Logger::~Logger() {
+        stop();
+    }
 
     void Logger::count(int count) {
         count_ = count;
@@ -140,8 +143,8 @@ namespace Netlib {
         if (LogLevel::FATAL <= level && level <= LogLevel::DEBUG) {
             std::lock_guard<std::mutex> lock(mutex_);
             // 如果当前缓存区容纳不下所有的数据则需要选择下一个缓存区
-            // 加6是因为日志级别占5个字节,后边的\n占一个字节
-            if (current_buffer_->avail() < len + 6) {
+            // 加7是因为日志级别占6个字节,后边的\n占一个字节
+            if (current_buffer_->avail() < len + 7) {
                 // 将当前缓存区插入队列
                 if (buffers_.size() < count_) {
                     buffers_.push_back(std::move(current_buffer_));
@@ -157,7 +160,7 @@ namespace Netlib {
                 }
             }
             current_buffer_->append(message, len);      // 添加日志内容
-            current_buffer_->append(levelToString(level).c_str(), 5);   // 添加级别
+            current_buffer_->append(levelToString(level).c_str(), 6);   // 添加级别
             current_buffer_->append("\n", 1);           // 添加\n
 
             // 如果队列不为空则唤醒后台线程
@@ -182,7 +185,7 @@ namespace Netlib {
                 std::lock_guard<std::mutex> locker(mutex_);
                 // 如果队列为空则阻塞当前线程,并设置超时等待时间为3s,即3s无论如何要将日志刷新一次到磁盘中
                 if (buffers_.empty()) {
-                    condition_.wait_for(mutex_, std::chrono::seconds(3));
+                    condition_.wait_for(mutex_, std::chrono::seconds(1));
                 }
                 // 将现在的buffer加入队列
                 buffers_.push_back(std::move(current_buffer_));

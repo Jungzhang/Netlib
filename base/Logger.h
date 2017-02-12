@@ -72,7 +72,7 @@ namespace Netlib {
         std::string path_;
         std::string fileName_;
         std::string suffix_;
-        time_t time_;
+        int count = 0;
         std::function<void(void *)> warningFunc_;           // 当文件打开失败时报警函数
     };
 
@@ -90,6 +90,7 @@ namespace Netlib {
 
     public:
         Logger(size_t rollSize = 1024 * 1024 * 1024);
+        ~Logger();
 
         // 前台线程向buffer中写入日志
         void append(const char *message, size_t len, LogLevel level);
@@ -103,14 +104,14 @@ namespace Netlib {
         // 设置输出文件的信息,包括路径、文件名、扩展名
         void setLogFileInfo( std::string filename, std::string path = "./", std::string suffix = "log");
 
+        // 停止后台线程,关闭日志
+        void stop();
+
     private:
         std::string levelToString(LogLevel level) const;
 
         // 后台线程函数
         void backThreadFunc();
-
-        // 停止后台线程
-        void stop();
 
     private:
         static int count_;                                   // 队列的最大长度
