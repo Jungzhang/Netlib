@@ -17,11 +17,17 @@ void defaultFlush() {
     fflush(stdout);
 }
 
+Logger::LogLevel initLogLevel() {
+//    if ()
+}
+
+
 // __thread是GCC的一个线程局部存储设施，类似全局变量，但是各个线程一个独立的值，互不影响
 __thread char t_errnobuf[512];
 __thread char t_time[32];
 __thread time_t t_lastSecond;
 
+Logger::LogLevel g_logLevel = initLogLevel();
 Logger::OutputFunc g_output = defultOutPut;
 Logger::Flushfunc g_flush = defaultFlush;
 TimeZone g_logTimeZone;
@@ -128,7 +134,7 @@ Logger::Impl::Impl(Logger::LogLevel level, int savedErrno, const SourceFile &fil
     stream << T(LogLevelName[level], 6);
 
     if (savedErrno != 0) {
-        stream << strerror_tl(savedErrno) << " (errno=" << savedErrno << ")";
+//        stream << strerror_tl(savedErrno) << " (errno=" << savedErrno << ")";
     }
 }
 

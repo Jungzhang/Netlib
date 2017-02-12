@@ -74,7 +74,7 @@ public:
 private:
     class Impl {
     public:
-        typedef Logger::LogLevel LogLevel
+        typedef Logger::LogLevel LogLevel;
         Impl(Logger::LogLevel level, int old_errno, const SourceFile &file, int line);
         void formatTime();
         void finish();

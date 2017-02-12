@@ -16,16 +16,24 @@
 template<int SIZE>
 
 class FixedBuffer {
+
+private:
+    // cookies的开始标记(被实现为一个空函数)
+    static void cookiesStart();
+
+    // cookie的末尾标记(被实现为一个空函数)
+    static void cookiesEnd();
+
 public:
 
     // 构造函数
     FixedBuffer() : cur(data_) {
-        setCookie(cookiesStart);
+//        setCookie(cookiesStart);
     }
 
     // 析构函数
     ~FixedBuffer() {
-        setCookie(cookiesEnd);
+//        setCookie(cookiesEnd);
     }
 
     // buffer中添加数据
@@ -76,7 +84,7 @@ public:
     const char *debugString();
 
     void setCookie(void (*cookie)()) {
-        this->cookie = cookie;
+//        this->cookie = cookie;
     }
 
     // toString
@@ -96,15 +104,9 @@ private:
         return data_ + sizeof(data_);
     }
 
-    // cookies的开始标记(被实现为一个空函数)
-    static void cookiesStart();
-
-    // cookie的末尾标记(被实现为一个空函数)
-    static void cookiesEnd();
-
 private:
     // 标记缓存在内存中还未写入磁盘,将来需要在coredump中寻找的
-    static void (*cookie)();
+    void (*cookie)();
 
     char data_[SIZE];
     char *cur;
@@ -112,6 +114,13 @@ private:
 
 
 class LogStream {
+
+public:
+    static const int kSmallBuffer = 4000;
+    static const int kLargeBuffer = 4000 * 1000;
+    static const int kMaxNumericSize = 32;
+    typedef FixedBuffer<kSmallBuffer> FixBuffer;
+
 public:
     // <<运算符的一些类型
     LogStream &operator<<(bool v);
@@ -153,22 +162,17 @@ public:
 
     void append(const char *data, int len);
 
-    template<int SIZE>
-    const FixedBuffer<SIZE> &buffer() const;
+
+    const LogStream::FixBuffer &buffer() const;
 
     void resetBuffer();
-
-public:
-    static const int kSmallBuffer = 4000;
-    static const int kLargeBuffer = 4000 * 1000;
-    static const int kMaxNumericSize = 32;
 
 private:
     template<typename T>
     void formatInteger(T);
 
 private:
-    FixedBuffer<kSmallBuffer> buffer_;
+    LogStream::FixBuffer buffer_;
 
 };
 

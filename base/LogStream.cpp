@@ -27,8 +27,7 @@ void LogStream::append(const char *data, int len) {
     buffer_.append(data, len);
 }
 
-template <int SIZE>
-const FixedBuffer<SIZE>& LogStream::buffer() const {
+const LogStream::FixBuffer &LogStream::buffer() const {
     return buffer_;
 }
 
