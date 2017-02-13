@@ -90,6 +90,8 @@ namespace Netlib {
 
     public:
         Logger(size_t rollSize = 1024 * 1024 * 1024);
+        // 删除复制构造函数
+        Logger(const Logger &) = delete;
         ~Logger();
 
         // 前台线程向buffer中写入日志

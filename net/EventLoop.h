@@ -13,6 +13,10 @@
 namespace Netlib {
     class EventLoop {
     public:
+
+        // 删除复制构造函数
+        EventLoop(const EventLoop &) = delete;
+
         EventLoop();
         ~EventLoop();
         void loop();
