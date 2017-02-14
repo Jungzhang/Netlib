@@ -7,6 +7,7 @@
 #include <iostream>
 #include <assert.h>
 #include "Poller.h"
+#include "EventLoop.h"
 
 Netlib::Poller::Poller(Netlib::EventLoop *loop) : ownerLoop_(loop) { }
 

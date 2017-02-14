@@ -9,9 +9,9 @@
 
 #include <sys/poll.h>
 #include <functional>
-#include "EventLoop.h"
 
 namespace Netlib{
+    class EventLoop;
     class Channel {
     public:
 

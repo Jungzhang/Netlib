@@ -6,7 +6,7 @@
 
 #include <thread>
 #include <assert.h>
-#include <poll.h>
+#include "Poller.h"
 #include "EventLoop.h"
 #include "../base/Thread.h"
 
@@ -14,11 +14,8 @@ __thread Netlib::EventLoop *t_loopInThisThread = 0;
 
 namespace Netlib {
 
-    namespace NetlibTemp {
-
-    }
-
-    EventLoop::EventLoop() : looping_(false), threadId_(Thread::convertIdToInt(std::this_thread::get_id())) {
+    EventLoop::EventLoop(int ms = 1000) : looping_(false), kPollTimeMs_(ms),
+                                          threadId_(Thread::convertIdToInt(std::this_thread::get_id())) {
         if (t_loopInThisThread) {
             ::printf("已存在EventLoop\n");
             abort();
@@ -36,10 +33,17 @@ namespace Netlib {
         assert(!looping_);
         assertInLoopThread();
         looping_ = true;
+        quit_ = false;
 
-        ::poll(nullptr, 0, 2 * 1000);
+        while (!quit_) {
+            activeChannels.clear();
+            poller_->poll(kPollTimeMs_, &activeChannels);
+            // 遍历发生事件的Channel,并分发事件
+            for (auto it = activeChannels.begin();  it < activeChannels.end(); ++it) {
+                (*it)->handleEvent();
+            }
+        }
 
-        ::printf("EventLoop is stop in %p\n", this);
         looping_ = false;
     }
 
@@ -61,6 +65,19 @@ namespace Netlib {
         ::printf("EventLoop is created in thread %ld but now in thread %ld", threadId_,
                  Thread::convertIdToInt(std::this_thread::get_id()));
         abort();
+    }
+
+    void EventLoop::quit() {
+        quit_ = true;
+        // FIXME 加上唤醒操作
+    }
+
+    void EventLoop::updateChannel(Channel *channel) {
+        // 断言channel是否属于本EventLoop
+        assert(channel->ownerLoop() == this);
+        // 断言本EventLoop是否属于本线程
+        assertInLoopThread();
+        poller_->updateChannel(channel);
     }
 
 }

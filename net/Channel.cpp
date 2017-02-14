@@ -4,7 +4,8 @@
 * >Description:
 **********************************************/
 
-#include "Channel.h"
+#include "EventLoop.h"
+#include "Poller.h"
 
 Netlib::Channel::Channel(Netlib::EventLoop *loop, int fd) : eventLoop_(loop), fd_(fd), revents_(0), events_(0),
                                                             index_(-1) {}
@@ -85,5 +86,5 @@ Netlib::EventLoop *Netlib::Channel::ownerLoop() {
 }
 
 void Netlib::Channel::update() {
-    // TODO 后续实现
+    eventLoop_->updateChannel(this);
 }
