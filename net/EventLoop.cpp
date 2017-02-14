@@ -14,7 +14,7 @@ __thread Netlib::EventLoop *t_loopInThisThread = 0;
 
 namespace Netlib {
 
-    EventLoop::EventLoop(int ms = 1000) : looping_(false), kPollTimeMs_(ms),
+    EventLoop::EventLoop(int ms = 1000) : looping_(false), kPollTimeMs_(ms), poller_(new Poller(this)),
                                           threadId_(Thread::convertIdToInt(std::this_thread::get_id())) {
         if (t_loopInThisThread) {
             ::printf("已存在EventLoop\n");
@@ -39,7 +39,7 @@ namespace Netlib {
             activeChannels.clear();
             poller_->poll(kPollTimeMs_, &activeChannels);
             // 遍历发生事件的Channel,并分发事件
-            for (auto it = activeChannels.begin();  it < activeChannels.end(); ++it) {
+            for (auto it = activeChannels.begin();  it != activeChannels.end(); ++it) {
                 (*it)->handleEvent();
             }
         }

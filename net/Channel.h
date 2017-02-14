@@ -16,7 +16,7 @@ namespace Netlib{
     public:
 
         // 回调事件的数据类型
-        typedef std::function<void()> EventCallback;
+        typedef std::function<void(void)> EventCallback;
 
         // 不可复制的类
         Channel(const Channel&) = delete;

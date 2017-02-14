@@ -72,6 +72,7 @@ void Netlib::Poller::fillActiveChannels(int numEvents, Netlib::Poller::ChannelLi
             assert(ch != channels_.end());
             // 取出对应的Channel的地址
             Channel *channel = ch->second;
+            channel->setRevents(pfd->revents);
             activeChannels->push_back(channel);
         }
     }

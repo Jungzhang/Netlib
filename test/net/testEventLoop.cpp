@@ -2,7 +2,7 @@
 	> File Name: testEventLoop.cpp
 	> Author: Jung
 	> Mail: jungzhang@xiyoulinux.org
-	> Description:
+	> Description: 测试EventLoop
  ************************************************************************/
 #include <iostream>
 #include <cstdlib>

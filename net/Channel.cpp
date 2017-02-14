@@ -13,15 +13,15 @@ Netlib::Channel::Channel(Netlib::EventLoop *loop, int fd) : eventLoop_(loop), fd
 void Netlib::Channel::handleEvent() {
 
     if (revents_ & (POLLNVAL | POLLERR)) {
-        if (errorCallback_) errorCallback_;
+        if (errorCallback_) errorCallback_();
     }
 
     if (revents_ & (POLLPRI | POLLIN)) {
-        if (readCallback_) readCallback_;
+        if (readCallback_) readCallback_();
     }
 
     if (revents_ & POLLOUT) {
-        if (writeCallback_) writeCallback_;
+        if (writeCallback_) writeCallback_();
     }
 }
 
@@ -46,7 +46,7 @@ int Netlib::Channel::events() const {
 }
 
 void Netlib::Channel::setRevents(int revt) {
-    events_ = revt;
+    revents_ = revt;
 }
 
 bool Netlib::Channel::isNoneEvent() const {
@@ -55,22 +55,27 @@ bool Netlib::Channel::isNoneEvent() const {
 
 void Netlib::Channel::enableReading() {
     events_ |= kReadEvent;
+    update();
 }
 
 void Netlib::Channel::enableWriting() {
     events_ |= kWriteEvent;
+    update();
 }
 
 void Netlib::Channel::disableReading() {
     events_ &= ~kReadEvent;
+    update();
 }
 
 void Netlib::Channel::disableWriting() {
     events_ &= ~kWriteEvent;
+    update();
 }
 
 void Netlib::Channel::disableAll() {
     events_ = kNoneEvent;
+    update();
 }
 
 int Netlib::Channel::index() {
