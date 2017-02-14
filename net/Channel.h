@@ -7,7 +7,7 @@
 #ifndef NETLIB_CHANNEL_H
 #define NETLIB_CHANNEL_H
 
-#include <bits/poll.h>
+#include <sys/poll.h>
 #include <functional>
 #include "EventLoop.h"
 
@@ -66,7 +66,7 @@ namespace Netlib{
         const int fd_;                  // 所管理的文件描述符
         int events_;                    // 注册事件
         int revents_;                   // 发生事件
-        int index_;                     // 供poller使用
+        int index_;                     // 记住自己在poll函数中fds参数的下标
     };
 }
 
