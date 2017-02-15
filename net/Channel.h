@@ -20,6 +20,7 @@ namespace Netlib{
 
         // 不可复制的类
         Channel(const Channel&) = delete;
+        Channel&operator=(const Channel &) = delete;
 
         // 构造函数
         Channel(EventLoop *loop, int fd);

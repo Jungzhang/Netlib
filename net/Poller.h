@@ -20,6 +20,7 @@ namespace Netlib {
 
         // 不可复制的类
         Poller(const Poller &) = delete;
+        Poller &operator=(const Poller &) = delete;
 
         // 构造函数
         Poller(EventLoop *loop);

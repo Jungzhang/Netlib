@@ -21,6 +21,7 @@ namespace Netlib {
 
         // 删除复制构造函数
         EventLoop(const EventLoop &) = delete;
+        EventLoop &operator=(const EventLoop &) = delete;
 
         EventLoop(int ms);
         ~EventLoop();
