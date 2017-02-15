@@ -16,7 +16,6 @@ namespace Netlib {
         explicit TimerId(Timer *value) : value_(value) { }
 
     private:
-        // FIXME 不确定对不对
         Timer* value_;
     };
 }
