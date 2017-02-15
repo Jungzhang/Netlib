@@ -9,19 +9,15 @@
 
 #include <memory>
 
-#include "Timer.h"
-
 namespace Netlib {
+    class Timer;
     class TimerId{
     public:
-        TimerId(std::unique_ptr<Timer> &&value) : value_(std::move(value)) {}
-        TimerId(std::unique_ptr<Timer> &value) : value_(std::move(value)) {}
-        TimerId(Timer *value) {
-            value_.reset(value);
-        }
+        explicit TimerId(Timer *value) : value_(value) { }
 
     private:
-        std::unique_ptr<Timer> value_;
+        // FIXME 不确定对不对
+        Timer* value_;
     };
 }
 
