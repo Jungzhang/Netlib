@@ -25,6 +25,7 @@ namespace Netlib {
             return timefd;
         }
 
+        // 计算现在到超时还有多长时间
         struct timespec howMuchTimeFromNow(TimeStamp when) {
             int64_t microseconds = when.microSecondsSinceEpoch() - TimeStamp::now().microSecondsSinceEpoch();
 
