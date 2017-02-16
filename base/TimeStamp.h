@@ -74,7 +74,7 @@ namespace Netlib {
         int64_t microSecondsSinceEpoch_;    // 从UNIX纪元到现在的微秒数
     };
 
-// 重载一些运算符
+    // 重载一些运算符
     inline bool operator<(TimeStamp lhs, TimeStamp rhs) {
         return lhs.microSecondsSinceEpoch() < rhs.microSecondsSinceEpoch();
     }
@@ -83,13 +83,13 @@ namespace Netlib {
         return lhs.microSecondsSinceEpoch() == rhs.microSecondsSinceEpoch();
     }
 
-// 计算两个时间的间隔(返回秒数)
+    // 计算两个时间的间隔(返回秒数)
     inline double timeDifference(TimeStamp high, TimeStamp low) {
         int64_t diff = high.microSecondsSinceEpoch() - low.microSecondsSinceEpoch();
         return static_cast<double >(diff) / TimeStamp::kMicroSecondsPerSecond;
     }
 
-// 加上seconds秒
+    // 加上seconds秒
     inline TimeStamp addTime(TimeStamp timeStamp, double second) {
         int64_t delta = static_cast<int64_t >(second * TimeStamp::kMicroSecondsPerSecond);
         return TimeStamp(delta + timeStamp.microSecondsSinceEpoch());
