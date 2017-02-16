@@ -10,19 +10,39 @@
 #include "EventLoop.h"
 #include "../base/Thread.h"
 #include "TimerQueue.h"
+#include <mutex>
+#include <sys/eventfd.h>
 
 __thread Netlib::EventLoop *t_loopInThisThread = 0;
 
+int ::Netlib::createEventfd() {
+    int fd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+
+    if (fd < 0) {
+        fprintf(stderr, "eventfd create filed");
+        abort();
+    }
+
+    return fd;
+}
+
 namespace Netlib {
 
-    EventLoop::EventLoop(int ms) : looping_(false), kPollTimeMs_(ms), poller_(new Poller(this))
-            , timerQueue_(new TimerQueue(this)), threadId_(Thread::convertIdToInt(std::this_thread::get_id())) {
+    EventLoop::EventLoop(int ms) : looping_(false),
+                                   kPollTimeMs_(ms),
+                                   poller_(new Poller(this)),
+                                   wakeupFd_(createEventfd()),
+                                   timerQueue_(new TimerQueue(this)),
+                                   wakeupChannel_(new Channel(this, wakeupFd_)),
+                                   threadId_(Thread::convertIdToInt(std::this_thread::get_id())) {
         if (t_loopInThisThread) {
             ::printf("已存在EventLoop\n");
             abort();
         } else {
             t_loopInThisThread = this;
         }
+        wakeupChannel_->setReadCallback(std::bind(&EventLoop::handleRead, this));
+        wakeupChannel_->enableReading();
     }
 
     EventLoop::~EventLoop() {
@@ -38,11 +58,12 @@ namespace Netlib {
 
         while (!quit_) {
             activeChannels.clear();
-            poller_->poll(kPollTimeMs_, &activeChannels);
+            pollReturnTime_ = poller_->poll(kPollTimeMs_, &activeChannels);
             // 遍历发生事件的Channel,并分发事件
-            for (auto it = activeChannels.begin();  it != activeChannels.end(); ++it) {
+            for (auto it = activeChannels.begin(); it != activeChannels.end(); ++it) {
                 (*it)->handleEvent();
             }
+            doPendingFunctors();
         }
 
         looping_ = false;
@@ -70,7 +91,9 @@ namespace Netlib {
 
     void EventLoop::quit() {
         quit_ = true;
-        // FIXME 加上唤醒操作
+        if (!isInLoopThread()) {
+            wakeup();
+        }
     }
 
     void EventLoop::updateChannel(Channel *channel) {
@@ -99,4 +122,59 @@ namespace Netlib {
         //TODO 待实现
     }
 
+    TimeStamp EventLoop::pollReturnTime() const {
+        return pollReturnTime_;
+    }
+
+    void EventLoop::runInLoop(const EventLoop::Functor &cb) {
+        // 如果传入的函数在IO中则直接执行,否则加入队列
+        if (isInLoopThread()) {
+            cb();
+        } else {
+            queueInLoop(cb);
+        }
+    }
+
+    void EventLoop::queueInLoop(const EventLoop::Functor &cb) {
+        // 先获得锁,再放入队列
+        {
+            std::lock_guard<std::mutex> locker(mutex);
+            pendingFunctors_.push_back(cb);
+        }
+
+        if (!isInLoopThread() || callingPendingFunctors_) {
+            wakeup();
+        }
+
+    }
+
+    void EventLoop::wakeup() {
+        uint64_t one = 1;
+        ssize_t n = ::write(wakeupFd_, &one, sizeof(one));
+        if (n != sizeof(one)) {
+            fprintf(stderr, "wakeup write %ld bayes wakeFd file in %s %d lines", n, __FILE__, __LINE__);
+        }
+    }
+
+    void EventLoop::handleRead() {
+        uint64_t one = 1;
+        ssize_t n = ::read(wakeupFd_, &one, sizeof(one));
+        if (n != sizeof(one)) {
+            fprintf(stderr, "handleRead read %ld bayes wakeFd file in %s %d lines", n, __FILE__, __LINE__);
+        }
+    }
+
+    void EventLoop::doPendingFunctors() {
+        std::vector<Functor> functors;
+        callingPendingFunctors_ = true;
+        {
+            std::lock_guard<std::mutex> locker(mutex);
+            functors.swap(pendingFunctors_);
+        }
+
+        for (size_t i = 0; i < functors.size(); ++i) {
+            functors[i]();
+        }
+        callingPendingFunctors_ = false;
+    }
 }

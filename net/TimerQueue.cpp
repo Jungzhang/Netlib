@@ -8,6 +8,7 @@
 #include <sys/timerfd.h>
 #include <strings.h>
 #include <assert.h>
+#include <functional>
 #include "TimerQueue.h"
 #include "TimerId.h"
 #include "EventLoop.h"
@@ -83,13 +84,16 @@ Netlib::TimerQueue::~TimerQueue() {
 Netlib::TimerId Netlib::TimerQueue::addTimer(const Netlib::TimerCallback &cb
         , Netlib::TimeStamp when, double interval) {
     Timer *timer = new Timer(cb, when, interval);
+    loop_->runInLoop(std::bind(&TimerQueue::addTimerInLoop, this, timer));
+    return TimerId(timer);
+}
+
+void Netlib::TimerQueue::addTimerInLoop(Netlib::Timer *timer) {
     loop_->assertInLoopThread();
     bool earliestChanged = insert(timer);
-
     if (earliestChanged) {
         NetlibTemp::resetTimerfd(timerfd_, timer->expiration());
     }
-    return TimerId(timer);
 }
 
 std::vector<Netlib::TimerQueue::Entry> Netlib::TimerQueue::getExpired(Netlib::TimeStamp now) {

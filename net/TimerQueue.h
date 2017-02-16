@@ -38,6 +38,9 @@ namespace Netlib {
         typedef std::pair<TimeStamp, Timer *>  Entry;
         typedef std::set<Entry> TimerList;
 
+        // 保证线程安全
+        void addTimerInLoop(Timer *timer);
+
         // 分发事件
         void handleRead();
         // 从timers中删除已到期的timer,并返回出来
