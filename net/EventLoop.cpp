@@ -9,6 +9,7 @@
 #include "Poller.h"
 #include "EventLoop.h"
 #include "../base/Thread.h"
+#include "TimerQueue.h"
 
 __thread Netlib::EventLoop *t_loopInThisThread = 0;
 
@@ -78,6 +79,24 @@ namespace Netlib {
         // 断言本EventLoop是否属于本线程
         assertInLoopThread();
         poller_->updateChannel(channel);
+    }
+
+    TimerId EventLoop::runAt(const TimeStamp &time, const TimerCallback &cb) {
+        return timerQueue_->addTimer(cb, time, 0.0);
+    }
+
+    TimerId EventLoop::runAfter(double delay, const TimerCallback &cb) {
+        TimeStamp timeStamp(addTime(TimeStamp::now(), delay));
+        return runAt(timeStamp, cb);
+    }
+
+    TimerId EventLoop::runEvery(double interval, const TimerCallback &cb) {
+        TimeStamp timeStamp(addTime(TimeStamp::now(), interval));
+        return timerQueue_->addTimer(timeStamp, timeStamp, interval);
+    }
+
+    void EventLoop::canel(TimerId timerId) {
+        //TODO 待实现
     }
 
 }
