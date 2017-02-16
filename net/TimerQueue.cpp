@@ -59,7 +59,6 @@ namespace Netlib {
         void readTimerfd(int timerfd, TimeStamp now) {
             uint64_t howmany;
             ssize_t n = ::read(timerfd, &howmany, sizeof(howmany));
-            fprintf(stdout, "TimerQueue::handleRead() %ld at %s\n", howmany, now.toString().c_str());
             if (n != sizeof(howmany)) {
                 fprintf(stderr, "TimerQueue::handleRead() reads %ld bytes instead of 8\n", howmany);
             }

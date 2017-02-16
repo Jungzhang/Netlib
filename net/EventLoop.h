@@ -13,6 +13,7 @@
 #include <memory>
 #include "TimerId.h"
 #include "Callbacks.h"
+#include "../base/TimeStamp.h"
 
 namespace Netlib {
     class Channel;
@@ -26,7 +27,7 @@ namespace Netlib {
         EventLoop(const EventLoop &) = delete;
         EventLoop &operator=(const EventLoop &) = delete;
 
-        EventLoop(int ms);
+        EventLoop(int ms  = 1000);
         ~EventLoop();
         void loop();
         void quit();

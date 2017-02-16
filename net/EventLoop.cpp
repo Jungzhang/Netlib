@@ -15,8 +15,8 @@ __thread Netlib::EventLoop *t_loopInThisThread = 0;
 
 namespace Netlib {
 
-    EventLoop::EventLoop(int ms = 1000) : looping_(false), kPollTimeMs_(ms), poller_(new Poller(this)),
-                                          threadId_(Thread::convertIdToInt(std::this_thread::get_id())) {
+    EventLoop::EventLoop(int ms) : looping_(false), kPollTimeMs_(ms), poller_(new Poller(this))
+            , timerQueue_(new TimerQueue(this)), threadId_(Thread::convertIdToInt(std::this_thread::get_id())) {
         if (t_loopInThisThread) {
             ::printf("已存在EventLoop\n");
             abort();
@@ -92,7 +92,7 @@ namespace Netlib {
 
     TimerId EventLoop::runEvery(double interval, const TimerCallback &cb) {
         TimeStamp timeStamp(addTime(TimeStamp::now(), interval));
-        return timerQueue_->addTimer(timeStamp, timeStamp, interval);
+        return timerQueue_->addTimer(cb, timeStamp, interval);
     }
 
     void EventLoop::canel(TimerId timerId) {
