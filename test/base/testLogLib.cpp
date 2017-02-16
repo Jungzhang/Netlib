@@ -11,27 +11,33 @@
 #include <cstring>
 #include <atomic>
 #include "../../base/Logger.h"
+#include "../../net/EventLoop.h"
 
 Netlib::Logger logTest;
 const char *data = "This is test";
-std::atomic_bool isRunig ;
+std::atomic_bool isRunig;
+Netlib::EventLoop *g_ptr;
 
 void testFunc() {
-    while (true) {
-        if (!isRunig) {
-            break;
-        }
+    while (isRunig) {
         logTest.append(data, strlen(data), Netlib::Logger::LogLevel::INFO);
     }
 }
 
+void stop() {
+    isRunig = false;
+    g_ptr->quit();
+}
+
 int main(int argc, char *argv[]) {
     logTest.setLogFileInfo("Test");
+    Netlib::EventLoop eventLoop(-1);
+    g_ptr = &eventLoop;
     isRunig = true;
+    eventLoop.runAfter(1, std::bind(stop));
     std::thread t1(testFunc);
+    eventLoop.loop();
 
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    isRunig = false;
     t1.join();
 
     return EXIT_SUCCESS;
