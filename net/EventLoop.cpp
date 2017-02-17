@@ -138,7 +138,7 @@ namespace Netlib {
     void EventLoop::queueInLoop(const EventLoop::Functor &cb) {
         // 先获得锁,再放入队列
         {
-            std::lock_guard<std::mutex> locker(mutex);
+            std::lock_guard<std::mutex> locker(mutex_);
             pendingFunctors_.push_back(cb);
         }
 
@@ -168,7 +168,7 @@ namespace Netlib {
         std::vector<Functor> functors;
         callingPendingFunctors_ = true;
         {
-            std::lock_guard<std::mutex> locker(mutex);
+            std::lock_guard<std::mutex> locker(mutex_);
             functors.swap(pendingFunctors_);
         }
 

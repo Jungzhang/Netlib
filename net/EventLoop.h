@@ -92,7 +92,7 @@ namespace Netlib {
         std::atomic_bool callingPendingFunctors_;   // 是否正在调用从用户线程中挪过来的任务
         int wakeupFd_;                              // 唤醒IO线程的文件描述符
         std::unique_ptr<Channel> wakeupChannel_;    // 唤醒后的事件分发器
-        std::mutex mutex;                           // 保护pendingFunctors_的锁
+        std::mutex mutex_;                          // 保护pendingFunctors_的锁
         std::vector<Functor> pendingFunctors_;      // 从用户线程中挪进IO线程的任务
     };
 }
