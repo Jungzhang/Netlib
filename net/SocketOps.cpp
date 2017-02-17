@@ -16,12 +16,12 @@ namespace {
 
     // const sockaddr_in*转换为const sockaddr*
     const SA *sockaddr_cast(const struct sockaddr_in *addr) {
-        return static_cast<const SA *>(addr);
+        return static_cast<const SA *>((void *)addr);
     }
 
     // sockaddr_in*转换为sockaddr*
     SA *sockaddr_cast(struct sockaddr_in *addr) {
-        return static_cast<SA *>(addr);
+        return static_cast<SA *>((void *)addr);
     }
 
     // 设置sockfd为非阻塞和close-on-exec标志
