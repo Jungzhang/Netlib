@@ -1,9 +1,14 @@
-#include <iostream>
-#include <zconf.h>
-#include "net/InetAddress.h"
-#include "net/SocketOps.h"
-#include "net/EventLoop.h"
-#include "net/Acceptor.h"
+/*************************************************************************
+	> File Name: testAcceptor.cpp
+	> Author: Jung
+	> Mail: jungzhang@xiyoulinux.org
+	> Created Time: 2017年02月17日 星期五 22时21分02秒
+	> Description:
+ ************************************************************************/
+#include "../../net/SocketOps.h"
+#include "../../net/EventLoop.h"
+#include "../../net/Acceptor.h"
+#include "../../net/InetAddress.h"
 
 void newConnection(int fd, const Netlib::InetAddress &peeraddr) {
     printf("new client connected ip and port : %s\n", peeraddr.toHostPort().c_str());
