@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <zconf.h>
 #include <arpa/inet.h>
+#include <strings.h>
 #include "SocketOps.h"
 
 namespace {
@@ -94,4 +95,15 @@ void ::Netlib::sockets::fromHostPort(const char *ip, uint16_t port, struct socka
     addr->sin_family = AF_INET;
     addr->sin_port = hostToNetwork16(port);
     ::inet_pton(AF_INET, ip, &addr->sin_addr);
+}
+
+struct sockaddr_in Netlib::sockets::getLocalAddr(int sockfd) {
+    struct sockaddr_in localaddr;
+    ::bzero(&localaddr, sizeof(localaddr));
+    socklen_t addrlen = sizeof(localaddr);
+    if (::getsockname(sockfd, sockaddr_cast(&localaddr), &addrlen) < 0) {
+        fprintf(stderr, "get socket name error");
+    }
+
+    return localaddr;
 }
