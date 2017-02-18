@@ -8,12 +8,13 @@
 #include "TcpConnection.h"
 #include "Channel.h"
 #include "EventLoop.h"
+#include "Socket.h"
 
 namespace Netlib {
     TcpConnection::TcpConnection(EventLoop *loop, const std::string &name
             , int sockfd, const InetAddress &localAddr, const InetAddress &peerAddr) : loop_(loop)
-            , name_(name), state_(kConnecting), socket_(new), channel_(new Channel(loop, sockfd))
-            , localAddr_(localAddr), peerAddr_(peerAddr)
+            , name_(name), state_(kConnecting), socket_(new Socket(sockfd))
+            , channel_(new Channel(loop, sockfd)), localAddr_(localAddr), peerAddr_(peerAddr)
     {
         channel_->setReadCallback(std::bind(&TcpConnection::handleRead, this));
     }
