@@ -8,6 +8,7 @@
 #include "Acceptor.h"
 #include "EventLoop.h"
 #include "SocketOps.h"
+#include "TcpConnection.h"
 
 Netlib::TcpServer::TcpServer(Netlib::EventLoop *loop, const Netlib::InetAddress &listenAddr)
         : loop_(loop),
