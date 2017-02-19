@@ -36,6 +36,7 @@ namespace Netlib{
 
     private:
         void newConnection(int sockfd, const InetAddress &peerAdrr);
+        void removeConnection(const TcpConnectionPtr &conn);
         typedef std::map<std::string, TcpConnectionPtr> ConnectionMap;
 
     private:

@@ -4,6 +4,7 @@
 * >Description:
 **********************************************/
 
+#include <cassert>
 #include "TcpServer.h"
 #include "Acceptor.h"
 #include "EventLoop.h"
@@ -32,6 +33,13 @@ void Netlib::TcpServer::start() {
     }
 }
 
+void Netlib::TcpServer::removeConnection(const Netlib::TcpConnectionPtr &conn) {
+    loop_->assertInLoopThread();
+    size_t n = connections_.erase(conn->name());
+    assert(n == 1);
+    loop_->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn));
+}
+
 void Netlib::TcpServer::setConnectionCallback(const Netlib::ConnectionCallback &cb) {
     connectionCallback_ = cb;
 }
@@ -52,5 +60,6 @@ void Netlib::TcpServer::newConnection(int sockfd, const Netlib::InetAddress &pee
     connections_[connName] = conn;
     conn->setConnectionCallback(connectionCallback_);
     conn->setMessageCallback(messageCallback_);
+    conn->setCloseCallback(std::bind(&TcpServer::removeConnection, this, std::placeholders::_1));
     conn->connectEstablished();
 }

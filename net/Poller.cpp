@@ -53,7 +53,7 @@ void Netlib::Poller::updateChannel(Netlib::Channel *channel) {
         pfd.revents = 0;
         if (channel->isNoneEvent()) {
             // 置为负数,让poll忽略
-            pfd.fd = -1;
+            pfd.fd = -channel->fd()-1;
         }
     }
 }
