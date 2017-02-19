@@ -69,6 +69,8 @@ namespace Netlib {
         void canel(TimerId timerId);
         // 更新Channel
         void updateChannel(Channel *channel);
+        // 删除Channel
+        void removeChannel(Channel *channel);
 
     private:
         // 如果本EventLoop不在本线程则断言

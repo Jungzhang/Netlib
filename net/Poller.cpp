@@ -77,3 +77,28 @@ void Netlib::Poller::fillActiveChannels(int numEvents, Netlib::Poller::ChannelLi
         }
     }
 }
+
+void Netlib::Poller::removeChannel(Netlib::Channel *channel) {
+    assertInLoopThread();
+    assert(channels_.find(channel->fd()) != channels_.end());
+    assert(channels_[channel->fd()] == channel);
+    assert(channel->isNoneEvent());
+
+    int idx = channel->index();
+    assert(0 <= idx && idx < static_cast<int>(pollFds_.size()));
+    const struct pollfd &pfd = pollFds_[idx];
+    assert(pfd.fd == -channel->fd() - 1 && pfd.events == channel->events());
+    size_t n = channels_.erase(channel->fd());
+    assert(n == 1);
+    if (idx == pollFds_.size() - 1) {
+        pollFds_.pop_back();
+    } else{
+        int channelAtEnd = pollFds_.back().fd;
+        std::iter_swap(pollFds_.begin() + idx, pollFds_.end() - 1);
+        if (channelAtEnd < 0) {
+            channelAtEnd = -channelAtEnd-1;
+        }
+        channels_[channelAtEnd]->setIndex(idx);
+        pollFds_.pop_back();
+    };
+}

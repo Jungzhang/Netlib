@@ -33,6 +33,8 @@ namespace Netlib {
 
         // 改变注册事件的接口
         void updateChannel(Channel *channel);
+        // 删除channel
+        void removeChannel(Channel *channel);
 
         // 断言事件循环是否是在本线程中
         void assertInLoopThread();
