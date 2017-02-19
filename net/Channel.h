@@ -49,6 +49,8 @@ namespace Netlib{
         void disableWriting();          // 设置为不可写
         void disableAll();              // 将所有的事件都取消
 
+        bool isWriting() const ;
+
         // Poller
         int index();
         void setIndex(int idx);

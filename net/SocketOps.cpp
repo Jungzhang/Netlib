@@ -119,3 +119,9 @@ int ::Netlib::sockets::getSocketError(int sockfd) {
         return optval;
     }
 }
+
+void ::Netlib::sockets::shutdownWrite(int sockfd) {
+    if (::shutdown(sockfd, SHUT_WR) < 0) {
+        fprintf(stderr, "Close write filed\n");
+    }
+}

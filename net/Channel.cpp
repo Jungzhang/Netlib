@@ -110,3 +110,7 @@ Netlib::Channel::~Channel() {
 void Netlib::Channel::setCloseCallback(const Netlib::Channel::EventCallback &cb) {
     closeCallback_ = cb;
 }
+
+bool Netlib::Channel::isWriting() const {
+    return events_ & kWriteEvent;
+}

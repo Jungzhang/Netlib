@@ -36,23 +36,27 @@ namespace Netlib {
         const InetAddress &peerAddress() const ;
         bool connected() const ;
 
+        void send(const std::string &message);
+        void shutdown();
+
         void setConnectionCallback(const ConnectionCallback &cb);
         void setMessageCallback(const MessageCallback &cb);
         void setCloseCallback(const CloseCallback &cb);
-
 
         void connectEstablished();
 
         void connectDestroyed();
 
     private:
-        enum StateE { kConnecting, kConnected, kDisconnected};
+        enum StateE { kConnecting, kConnected, kDisConnecting, kDisconnected};
 
         void setState(StateE s);
         void handleRead(TimeStamp receiveTime);
         void handleWrite();
         void handleClose();
         void handleError();
+        void sendInLoop(const std::string &message);
+        void shutdownInLoop();
 
     private:
 
@@ -67,6 +71,7 @@ namespace Netlib {
         MessageCallback messageCallback_;
         CloseCallback closeCallback_;
         Buffer inputBuffer_;
+        Buffer outBuffer_;
     };
 }
 

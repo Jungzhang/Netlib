@@ -31,6 +31,8 @@ namespace Netlib{
         // 设置端口可重用
         void setReuseAddr(bool on);
 
+        void shutdownWrite();
+
     private:
         const int sockfd_;
     };

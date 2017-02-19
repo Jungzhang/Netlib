@@ -18,6 +18,9 @@ namespace Netlib {
             , channel_(new Channel(loop, sockfd)), localAddr_(localAddr), peerAddr_(peerAddr)
     {
         channel_->setReadCallback(std::bind(&TcpConnection::handleRead, this, std::placeholders::_1));
+        channel_->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
+        channel_->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
+        channel_->serErrorCallback(std::bind(&TcpConnection::handleError, this));
     }
 
     TcpConnection::~TcpConnection() { }
@@ -78,7 +81,27 @@ namespace Netlib {
     }
 
     void TcpConnection::handleWrite() {
-        //TODO
+        loop_->assertInLoopThread();
+
+        if (channel_->isWriting()) {
+            ssize_t n = ::write(channel_->fd(), outBuffer_.peek(), outBuffer_.readableBytes());
+            if (n > 0) {
+                outBuffer_.retrieve(n);
+                if (outBuffer_.readableBytes() == 0) {
+                    channel_->disableWriting();
+                    if (state_ == kDisConnecting) {
+                        shutdownInLoop();
+                    }
+                } else {
+                    printf("I am going to write more data\n");
+                }
+            } else {
+                fprintf(stderr, "write filed\n");
+            }
+        } else {
+            fprintf(stderr, "Connect id down, no more writing\n");
+        }
+
     }
 
     void TcpConnection::handleClose() {
@@ -104,5 +127,51 @@ namespace Netlib {
         channel_->disableAll();
         connectionCallback_(shared_from_this());
         loop_->removeChannel(channel_.get());
+    }
+
+    void TcpConnection::send(const std::string &message) {
+        if (state_ == kConnected) {
+            if (loop_->isInLoopThread()) {
+                sendInLoop(message);
+            } else {
+                loop_->runInLoop(std::bind(&TcpConnection::sendInLoop, this, message));
+            }
+        }
+    }
+
+    void TcpConnection::shutdown() {
+        if (state_ == kConnected) {
+            setState(kDisConnecting);
+            loop_->runInLoop(std::bind(&TcpConnection::shutdownInLoop, this));
+        }
+    }
+
+    void TcpConnection::sendInLoop(const std::string &message) {
+        loop_->assertInLoopThread();
+        ssize_t nwrote = 0;
+        if (!channel_->isWriting() && outBuffer_.readableBytes() == 0) {
+            nwrote = ::write(channel_->fd(), message.data(), message.size());
+            if (nwrote < 0) {
+                nwrote = 0;
+                if (errno != EWOULDBLOCK) {
+                    fprintf(stderr, "发送失败");
+                }
+            }
+        }
+
+        assert(nwrote >= 0);
+        if (nwrote < message.size()) {
+            outBuffer_.append(message.data() + nwrote, message.size() - nwrote);
+            if (!channel_->isWriting()) {
+                channel_->enableWriting();
+            }
+        }
+    }
+
+    void TcpConnection::shutdownInLoop() {
+        loop_->assertInLoopThread();
+        if (!channel_->isWriting()) {
+            socket_->shutdownWrite();
+        }
     }
 }
