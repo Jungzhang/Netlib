@@ -12,6 +12,7 @@
 
 namespace Netlib{
     class EventLoop;
+    class TimeStamp;
     class Channel {
     public:
 
