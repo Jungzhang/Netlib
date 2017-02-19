@@ -48,7 +48,7 @@ void Netlib::Poller::updateChannel(Netlib::Channel *channel) {
         int idx = channel->index();
         assert(0 <= idx && idx < static_cast<short >(pollFds_.size()));
         struct pollfd &pfd = pollFds_[idx];
-        assert(pfd.fd == channel->fd() || pfd.fd == -1);
+        assert(pfd.fd == channel->fd() || pfd.fd == -channel->fd()-1);
         pfd.events = static_cast<short >(channel->events());
         pfd.revents = 0;
         if (channel->isNoneEvent()) {
