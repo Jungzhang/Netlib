@@ -10,6 +10,7 @@
 #include "../../net/TcpConnection.h"
 #include "../../net/EventLoop.h"
 #include "../../net/TcpServer.h"
+#include "../../net/Buffer.h"
 
 void onConnection(const Netlib::TcpConnectionPtr &conn) {
     if (conn->connected()) {
@@ -20,8 +21,10 @@ void onConnection(const Netlib::TcpConnectionPtr &conn) {
     }
 }
 
-void onMessage(const Netlib::TcpConnectionPtr &conn, const char *data, ssize_t len) {
-    printf("received %zd bytes from connection : %s\n", len, conn->peerAddress().toHostPort().c_str());
+void onMessage(const Netlib::TcpConnectionPtr &conn, Netlib::Buffer *buf, Netlib::TimeStamp re) {
+    printf("received %zd bytes from connection : %s\n", buf->readableBytes()
+            , conn->peerAddress().toHostPort().c_str());
+    printf("the data : %s\n", buf->retrieveAllAsString().c_str());
 }
 
 
