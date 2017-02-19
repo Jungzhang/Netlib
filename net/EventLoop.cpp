@@ -61,7 +61,7 @@ namespace Netlib {
             pollReturnTime_ = poller_->poll(kPollTimeMs_, &activeChannels);
             // 遍历发生事件的Channel,并分发事件
             for (auto it = activeChannels.begin(); it != activeChannels.end(); ++it) {
-                (*it)->handleEvent();
+                (*it)->handleEvent(pollReturnTime_);
             }
             doPendingFunctors();
         }

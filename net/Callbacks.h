@@ -9,6 +9,8 @@
 
 #include <functional>
 #include <memory>
+#include "Buffer.h"
+#include "../base/TimeStamp.h"
 
 namespace Netlib {
 
@@ -18,7 +20,7 @@ namespace Netlib {
 
     typedef std::function<void()> TimerCallback;
     typedef std::function<void(const TcpConnectionPtr &)> ConnectionCallback;
-    typedef std::function<void(const TcpConnectionPtr &, const char *data, ssize_t len)> MessageCallback;
+    typedef std::function<void(const TcpConnectionPtr &, Buffer *buf, TimeStamp)> MessageCallback;
     typedef std::function<void(const TcpConnectionPtr &)> CloseCallback;
 }
 

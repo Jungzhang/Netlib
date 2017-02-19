@@ -17,6 +17,7 @@ namespace Netlib{
 
         // 回调事件的数据类型
         typedef std::function<void(void)> EventCallback;
+        typedef std::function<void(Netlib::TimeStamp)> ReadEventCallback;
 
         // 不可复制的类
         Channel(const Channel&) = delete;
@@ -28,10 +29,10 @@ namespace Netlib{
         ~Channel();
 
         // 事件分发
-        void handleEvent();
+        void handleEvent(TimeStamp receiveTime);
 
         // 设置回调
-        void setReadCallback(const EventCallback &cb);
+        void setReadCallback(const ReadEventCallback &cb);
         void setWriteCallback(const EventCallback &cb);
         void serErrorCallback(const EventCallback &cb);
         void setCloseCallback(const EventCallback &cb);
@@ -64,7 +65,7 @@ namespace Netlib{
         static const int kReadEvent = POLLIN | POLLPRI;
         static const int kWriteEvent = POLLOUT;
 
-        EventCallback readCallback_;    // 读事件回调
+        ReadEventCallback readCallback_;    // 读事件回调
         EventCallback writeCallback_;   // 写事件回调
         EventCallback errorCallback_;   // 错误事件回调
         EventCallback closeCallback_;   // 关闭连接的事件回调

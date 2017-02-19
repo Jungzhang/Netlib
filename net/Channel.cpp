@@ -11,7 +11,7 @@
 Netlib::Channel::Channel(Netlib::EventLoop *loop, int fd) : eventLoop_(loop), fd_(fd), revents_(0), events_(0),
                                                             index_(-1) {}
 
-void Netlib::Channel::handleEvent() {
+void Netlib::Channel::handleEvent(TimeStamp receiveTime) {
 
     eventHandling_ = true;
 
@@ -24,7 +24,7 @@ void Netlib::Channel::handleEvent() {
     }
 
     if (revents_ & (POLLPRI | POLLIN)) {
-        if (readCallback_) readCallback_();
+        if (readCallback_) readCallback_(receiveTime);
     }
 
     if (revents_ & POLLOUT) {
