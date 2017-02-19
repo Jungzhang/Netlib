@@ -17,7 +17,7 @@ namespace Netlib {
             , name_(name), state_(kConnecting), socket_(new Socket(sockfd))
             , channel_(new Channel(loop, sockfd)), localAddr_(localAddr), peerAddr_(peerAddr)
     {
-        channel_->setReadCallback(std::bind(&TcpConnection::handleRead, this));
+        channel_->setReadCallback(std::bind(&TcpConnection::handleRead, this, std::placeholders::_1));
     }
 
     TcpConnection::~TcpConnection() { }
@@ -62,12 +62,14 @@ namespace Netlib {
         state_ = s;
     }
 
-    void TcpConnection::handleRead() {
-        char buf[65536];
-        ssize_t n = ::read(channel_->fd(), buf, sizeof(buf));
+    void TcpConnection::handleRead(TimeStamp receiveTime) {
+
+        int errnoSave;
+
+        ssize_t n = inputBuffer_.readFd(socket_->fd(), &errnoSave);
 
         if (n > 0) {
-            messageCallback_(shared_from_this(), buf, n);
+            messageCallback_(shared_from_this(), &inputBuffer_, receiveTime);
         } else if (n == 0) {
             handleClose();
         } else {

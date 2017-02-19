@@ -10,6 +10,7 @@
 #include <string>
 #include "InetAddress.h"
 #include "Callbacks.h"
+#include "Buffer.h"
 
 namespace Netlib {
 
@@ -48,7 +49,7 @@ namespace Netlib {
         enum StateE { kConnecting, kConnected, kDisconnected};
 
         void setState(StateE s);
-        void handleRead();
+        void handleRead(TimeStamp receiveTime);
         void handleWrite();
         void handleClose();
         void handleError();
@@ -65,6 +66,7 @@ namespace Netlib {
         ConnectionCallback connectionCallback_;
         MessageCallback messageCallback_;
         CloseCallback closeCallback_;
+        Buffer inputBuffer_;
     };
 }
 

@@ -34,7 +34,7 @@ void Netlib::Channel::handleEvent(TimeStamp receiveTime) {
     eventHandling_ = false;
 }
 
-void Netlib::Channel::setReadCallback(const Netlib::Channel::EventCallback &cb) {
+void Netlib::Channel::setReadCallback(const Netlib::Channel::ReadEventCallback &cb) {
     readCallback_ = cb;
 }
 
