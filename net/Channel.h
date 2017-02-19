@@ -25,6 +25,8 @@ namespace Netlib{
         // 构造函数
         Channel(EventLoop *loop, int fd);
 
+        ~Channel();
+
         // 事件分发
         void handleEvent();
 
@@ -32,6 +34,7 @@ namespace Netlib{
         void setReadCallback(const EventCallback &cb);
         void setWriteCallback(const EventCallback &cb);
         void serErrorCallback(const EventCallback &cb);
+        void setCloseCallback(const EventCallback &cb);
 
         int fd() const ;                // 返回当前Channel所管理的fd
         int events() const ;            // 返回注册的事件
@@ -54,6 +57,8 @@ namespace Netlib{
     private:
         void update();                  // 更新
 
+    private:
+
         // 无事件  读事件   写事件
         static const int kNoneEvent = 0;
         static const int kReadEvent = POLLIN | POLLPRI;
@@ -62,6 +67,9 @@ namespace Netlib{
         EventCallback readCallback_;    // 读事件回调
         EventCallback writeCallback_;   // 写事件回调
         EventCallback errorCallback_;   // 错误事件回调
+        EventCallback closeCallback_;   // 关闭连接的事件回调
+
+        bool eventHandling_;            // eventHandle是否正在运行
 
         EventLoop *eventLoop_;          // 事件循环
         const int fd_;                  // 所管理的文件描述符

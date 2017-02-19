@@ -4,6 +4,7 @@
 * >Description:
 **********************************************/
 
+#include <assert.h>
 #include "EventLoop.h"
 #include "Poller.h"
 
@@ -11,6 +12,12 @@ Netlib::Channel::Channel(Netlib::EventLoop *loop, int fd) : eventLoop_(loop), fd
                                                             index_(-1) {}
 
 void Netlib::Channel::handleEvent() {
+
+    eventHandling_ = true;
+
+    if ((revents_ & POLLHUP) && !(revents_ & POLLIN)) {
+        if (closeCallback_) closeCallback_();
+    }
 
     if (revents_ & (POLLNVAL | POLLERR)) {
         if (errorCallback_) errorCallback_();
@@ -23,6 +30,8 @@ void Netlib::Channel::handleEvent() {
     if (revents_ & POLLOUT) {
         if (writeCallback_) writeCallback_();
     }
+
+    eventHandling_ = false;
 }
 
 void Netlib::Channel::setReadCallback(const Netlib::Channel::EventCallback &cb) {
@@ -92,4 +101,12 @@ Netlib::EventLoop *Netlib::Channel::ownerLoop() {
 
 void Netlib::Channel::update() {
     eventLoop_->updateChannel(this);
+}
+
+Netlib::Channel::~Channel() {
+    assert(!eventHandling_);
+}
+
+void Netlib::Channel::setCloseCallback(const Netlib::Channel::EventCallback &cb) {
+    closeCallback_ = cb;
 }
