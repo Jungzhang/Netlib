@@ -39,6 +39,9 @@ namespace Netlib {
         void send(const std::string &message);
         void shutdown();
 
+        void setTcpNoDelay(bool on);
+        void setKeepalive(bool on);
+
         void setConnectionCallback(const ConnectionCallback &cb);
         void setMessageCallback(const MessageCallback &cb);
         void setCloseCallback(const CloseCallback &cb);

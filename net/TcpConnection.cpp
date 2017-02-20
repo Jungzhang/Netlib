@@ -21,6 +21,7 @@ namespace Netlib {
         channel_->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
         channel_->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
         channel_->serErrorCallback(std::bind(&TcpConnection::handleError, this));
+        socket_->setKeepalive(true);
     }
 
     TcpConnection::~TcpConnection() { }
@@ -173,5 +174,13 @@ namespace Netlib {
         if (!channel_->isWriting()) {
             socket_->shutdownWrite();
         }
+    }
+
+    void TcpConnection::setTcpNoDelay(bool on) {
+        socket_->setTcpNoDelay(on);
+    }
+
+    void TcpConnection::setKeepalive(bool on) {
+        socket_->setKeepalive(on);
     }
 }

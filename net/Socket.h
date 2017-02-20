@@ -33,6 +33,9 @@ namespace Netlib{
 
         void shutdownWrite();
 
+        void setTcpNoDelay(bool on);
+        void setKeepalive(bool on);
+
     private:
         const int sockfd_;
     };

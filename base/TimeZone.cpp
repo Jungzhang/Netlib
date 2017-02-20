@@ -248,7 +248,6 @@ namespace Netlib {
             if (!tryTm.tm_isdst
                 && tryTm.tm_hour == t.tm_hour
                 && tryTm.tm_min == t.tm_min) {
-                // FIXME: HACK
                 second -= 3600;
             }
         }

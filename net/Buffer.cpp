@@ -19,7 +19,6 @@ namespace Netlib {
         vec[1].iov_base = extrabuf;
         vec[1].iov_len = sizeof(extrabuf);
 
-        // FIXME:此处应更改为Sockets::readv
         const ssize_t n = readv(fd, vec, 2);
 
         if (n < 0) {

@@ -5,6 +5,7 @@
 **********************************************/
 
 #include <netinet/in.h>
+#include <linux/tcp.h>
 #include <strings.h>
 #include "Socket.h"
 #include "SocketOps.h"
@@ -47,4 +48,14 @@ void Netlib::Socket::setReuseAddr(bool on) {
 
 void Netlib::Socket::shutdownWrite() {
     sockets::shutdownWrite(sockfd_);
+}
+
+void Netlib::Socket::setTcpNoDelay(bool on) {
+    int optval = on ? 1 : 0;
+    ::setsockopt(sockfd_, IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(optval));
+}
+
+void Netlib::Socket::setKeepalive(bool on) {
+    int optval = on ? 1 : 0;
+    ::setsockopt(sockfd_, SOL_SOCKET, SO_KEEPALIVE, &optval, static_cast<socklen_t > (sizeof(optval)));
 }
