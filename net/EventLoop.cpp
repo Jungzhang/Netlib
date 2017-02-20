@@ -26,6 +26,15 @@ int ::Netlib::createEventfd() {
     return fd;
 }
 
+class IgnoreSigPipe {
+public:
+    IgnoreSigPipe() {
+        ::signal(SIGPIPE, SIG_IGN);
+    }
+};
+
+IgnoreSigPipe ignoreSigPipe;
+
 namespace Netlib {
 
     EventLoop::EventLoop(int ms) : looping_(false),
