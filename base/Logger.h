@@ -60,7 +60,7 @@ namespace Netlib {
         // 判断文件描述符是否有效
         bool avail();
 
-        void setWarningFunc(std::function<void(void*)> func);
+        void setWarningFunc(std::function<void(void)> func);
 
     private:
         // 滚动文件
@@ -73,7 +73,7 @@ namespace Netlib {
         std::string fileName_;
         std::string suffix_;
         int count = 0;
-        std::function<void(void *)> warningFunc_;           // 当文件打开失败时报警函数
+        std::function<void(void)> warningFunc_;           // 当文件打开失败时报警函数
     };
 
 
@@ -101,7 +101,7 @@ namespace Netlib {
         void count(int count);
 
         // 设置报警函数
-        void setWarningFunc(std::function<void(void *)> fileWarning, std::function<void(void *)> queueWarning);
+        void setWarningFunc(std::function<void(void)> fileWarning, std::function<void(void)> queueWarning);
 
         // 设置输出文件的信息,包括路径、文件名、扩展名
         void setLogFileInfo( std::string filename, std::string path = "./", std::string suffix = "log");
@@ -126,8 +126,8 @@ namespace Netlib {
         size_t rollSize_;                                   // 日志滚动大小
         std::thread backThread_;                            // 后台线程
         static const std::string levelString[5];            // 日志等级的字符串
-        std::function<void(void *)> warningFunc_;           // 当队列达到最大值时的报警函数
-        std::function<void(void *)> warningFileFunc_;           // 当队列达到最大值时的报警函数
+        std::function<void(void)> warningFunc_;           // 当队列达到最大值时的报警函数
+        std::function<void(void)> warningFileFunc_;           // 当队列达到最大值时的报警函数
         std::string path_;
         std::string filename_;
         std::string suffix_;

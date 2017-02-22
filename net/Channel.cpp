@@ -42,7 +42,7 @@ void Netlib::Channel::setWriteCallback(const Netlib::Channel::EventCallback &cb)
     writeCallback_ = cb;
 }
 
-void Netlib::Channel::serErrorCallback(const Netlib::Channel::EventCallback &cb) {
+void Netlib::Channel::setErrorCallback(const Netlib::Channel::EventCallback &cb) {
     errorCallback_ = cb;
 }
 

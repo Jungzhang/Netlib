@@ -125,3 +125,24 @@ void ::Netlib::sockets::shutdownWrite(int sockfd) {
         fprintf(stderr, "Close write filed\n");
     }
 }
+
+int ::Netlib::sockets::connect(int sockfd, const sockaddr_in &addr) {
+    return ::connect(sockfd, sockaddr_cast(&addr), sizeof(addr));
+}
+
+bool ::Netlib::sockets::isSelfConnect(int sockfd) {
+    struct sockaddr_in localaddr = getLocalAddr(sockfd);
+    struct sockaddr_in peer = getPeerAddr(sockfd);
+
+    return localaddr.sin_addr.s_addr == peer.sin_addr.s_addr && localaddr.sin_port == peer.sin_port;
+}
+
+struct sockaddr_in Netlib::sockets::getPeerAddr(int sockfd) {
+    struct sockaddr_in peeraddr;
+    bzero(&peeraddr, sizeof(peeraddr));
+    socklen_t len = sizeof(peeraddr);
+    if (::getsockname(sockfd, (sockaddr *) &peeraddr, &len) < 0) {
+        fprintf(stderr, "The called getsockname filed\n");
+    }
+    return peeraddr;
+}

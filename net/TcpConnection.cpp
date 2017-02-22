@@ -20,7 +20,7 @@ namespace Netlib {
         channel_->setReadCallback(std::bind(&TcpConnection::handleRead, this, std::placeholders::_1));
         channel_->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
         channel_->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
-        channel_->serErrorCallback(std::bind(&TcpConnection::handleError, this));
+        channel_->setErrorCallback(std::bind(&TcpConnection::handleError, this));
         socket_->setKeepalive(true);
     }
 

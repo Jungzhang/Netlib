@@ -83,7 +83,7 @@ namespace Netlib {
             resultSize = static_cast<size_t >(::write(fileFd_, data, len));
             currentSize_ += resultSize;
         } else {
-            warningFunc_;
+            warningFunc_();
             return -1;
         }
         return static_cast<int>(resultSize);
@@ -99,7 +99,7 @@ namespace Netlib {
         currentSize_ = 0;
     }
 
-    void File::setWarningFunc(std::function<void(void *)> func) {
+    void File::setWarningFunc(std::function<void(void)> func) {
         warningFunc_ = func;
     }
 
@@ -126,8 +126,8 @@ namespace Netlib {
     }
 
     void Logger::setWarningFunc(
-            std::function<void(void *)> fileWraning = std::bind(NetlibTemp::initWarningFileFunc, nullptr),
-            std::function<void(void *)> queueWraning = std::bind(NetlibTemp::initWarningFunc, nullptr)) {
+            std::function<void(void)> fileWraning = std::bind(NetlibTemp::initWarningFileFunc, nullptr),
+            std::function<void(void)> queueWraning = std::bind(NetlibTemp::initWarningFunc, nullptr)) {
         warningFunc_ = queueWraning;
         warningFileFunc_ = fileWraning;
     }

@@ -13,7 +13,7 @@ namespace Netlib {
     class Timer;
     class TimerId{
     public:
-        explicit TimerId(Timer *value) : value_(value) { }
+        explicit TimerId(Timer *value = nullptr) : value_(value) { }
 
     private:
         Timer* value_;

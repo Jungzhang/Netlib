@@ -35,7 +35,7 @@ namespace Netlib{
         // 设置回调
         void setReadCallback(const ReadEventCallback &cb);
         void setWriteCallback(const EventCallback &cb);
-        void serErrorCallback(const EventCallback &cb);
+        void setErrorCallback(const EventCallback &cb);
         void setCloseCallback(const EventCallback &cb);
 
         int fd() const ;                // 返回当前Channel所管理的fd
