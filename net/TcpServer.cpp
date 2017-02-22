@@ -17,6 +17,7 @@ Netlib::TcpServer::TcpServer(Netlib::EventLoop *loop, const Netlib::InetAddress 
           name_(listenAddr.toHostPort()),
           acceptor_(new Acceptor(loop, listenAddr)),
           started_(false),
+          threadPool_(new EventLoopThreadPool(loop)),
           nextConnId_(1) {
     acceptor_->setNewConnectionCallback(std::bind(&TcpServer::newConnection, this,
                                                   std::placeholders::_1, std::placeholders::_2));
@@ -27,6 +28,7 @@ Netlib::TcpServer::~TcpServer() { }
 void Netlib::TcpServer::start() {
     if (!started_) {
         started_ = true;
+        threadPool_->start();
     }
 
     if (!acceptor_->listenning()) {
@@ -71,4 +73,9 @@ void Netlib::TcpServer::removeConnectionInLoop(const Netlib::TcpConnectionPtr &c
     // 在IO事件循环中执行相应的销毁连接操作,而不是在主线程循环中执行销毁操作
     EventLoop *ioLoop = conn->getLoop();
     ioLoop->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn));
+}
+
+void Netlib::TcpServer::setThreadNum(int numThread) {
+    assert(numThread >= 0);
+    threadPool_->setThreadNum(numThread);
 }

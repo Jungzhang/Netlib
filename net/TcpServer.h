@@ -33,7 +33,8 @@ namespace Netlib{
         void setConnectionCallback(const ConnectionCallback &cb);
         // 设置消息回调
         void setMessageCallback(const MessageCallback &cb);
-
+        // 设置线程数
+        void setThreadNum(int numThread);
 
     private:
         void newConnection(int sockfd, const InetAddress &peerAdrr);
