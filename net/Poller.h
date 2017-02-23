@@ -40,7 +40,7 @@ namespace Netlib {
         void assertInLoopThread();
 
     private:
-        // 处理poll返回后有时间的返回的事情
+        // 处理poll返回后有事件的返回的Channel
         void fillActiveChannels(int numEvents, ChannelList *activeChannels) const;
         typedef std::vector<struct pollfd> PollFdList;  // poll的pollfd数组,使用时将vector转换为C数组
         typedef std::map<int, Channel *> ChannelMap;    // fd到Channel的映射
