@@ -61,7 +61,7 @@ namespace Netlib {
         TimerId timerId_;
     };
 
-    typedef std::unique_ptr<Connector> ConnectorPtr;
+    typedef std::shared_ptr<Connector> ConnectorPtr;
 }
 
 #endif //NETLIB_CONNECTOR_H

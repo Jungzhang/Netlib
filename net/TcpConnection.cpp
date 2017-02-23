@@ -90,6 +90,9 @@ namespace Netlib {
                 outBuffer_.retrieve(n);
                 if (outBuffer_.readableBytes() == 0) {
                     channel_->disableWriting();
+                    if (writeCompleteCallback_) {
+                        loop_->runInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
+                    }
                     if (state_ == kDisConnecting) {
                         shutdownInLoop();
                     }
@@ -155,7 +158,11 @@ namespace Netlib {
             if (nwrote < 0) {
                 nwrote = 0;
                 if (errno != EWOULDBLOCK) {
-                    fprintf(stderr, "发送失败");
+                    fprintf(stderr, "send filed\n");
+                }
+            } else {
+                if (nwrote >= message.size() && writeCompleteCallback_) {
+                    loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
                 }
             }
         }
@@ -182,5 +189,9 @@ namespace Netlib {
 
     void TcpConnection::setKeepalive(bool on) {
         socket_->setKeepalive(on);
+    }
+
+    void TcpConnection::setWriteCompleteCallback(const WriteCompleteCallback &cb) {
+        writeCompleteCallback_ = cb;
     }
 }

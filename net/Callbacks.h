@@ -22,6 +22,7 @@ namespace Netlib {
     typedef std::function<void(const TcpConnectionPtr &)> ConnectionCallback;
     typedef std::function<void(const TcpConnectionPtr &, Buffer *buf, TimeStamp)> MessageCallback;
     typedef std::function<void(const TcpConnectionPtr &)> CloseCallback;
+    typedef std::function<void(const TcpConnectionPtr &)> WriteCompleteCallback;
 }
 
 #endif //NETLIB_CALLBACKS_H

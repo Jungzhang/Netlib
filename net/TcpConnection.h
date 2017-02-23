@@ -45,6 +45,7 @@ namespace Netlib {
         void setConnectionCallback(const ConnectionCallback &cb);
         void setMessageCallback(const MessageCallback &cb);
         void setCloseCallback(const CloseCallback &cb);
+        void setWriteCompleteCallback(const WriteCompleteCallback &cb);
 
         void connectEstablished();
 
@@ -72,6 +73,7 @@ namespace Netlib {
         InetAddress peerAddr_;
         ConnectionCallback connectionCallback_;
         MessageCallback messageCallback_;
+        WriteCompleteCallback writeCompleteCallback_;
         CloseCallback closeCallback_;
         Buffer inputBuffer_;
         Buffer outBuffer_;
