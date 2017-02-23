@@ -128,7 +128,7 @@ namespace Netlib {
     }
 
     void EventLoop::canel(TimerId timerId) {
-        //TODO 待实现
+        timerQueue_->canel(timerId);
     }
 
     TimeStamp EventLoop::pollReturnTime() const {

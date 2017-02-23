@@ -7,7 +7,6 @@
 
 #include <sys/timerfd.h>
 #include <strings.h>
-#include <assert.h>
 #include <functional>
 #include "TimerQueue.h"
 #include "TimerId.h"
@@ -86,7 +85,7 @@ Netlib::TimerId Netlib::TimerQueue::addTimer(const Netlib::TimerCallback &cb
         , Netlib::TimeStamp when, double interval) {
     Timer *timer = new Timer(cb, when, interval);
     loop_->runInLoop(std::bind(&TimerQueue::addTimerInLoop, this, timer));
-    return TimerId(timer);
+    return TimerId(timer, timer->sequence());
 }
 
 void Netlib::TimerQueue::addTimerInLoop(Netlib::Timer *timer) {
@@ -98,6 +97,7 @@ void Netlib::TimerQueue::addTimerInLoop(Netlib::Timer *timer) {
 }
 
 std::vector<Netlib::TimerQueue::Entry> Netlib::TimerQueue::getExpired(Netlib::TimeStamp now) {
+    assert(timers_.size() == activeTimers_.size());
     std::vector<Entry> expired;
     Entry sentry = std::make_pair(now, reinterpret_cast<Timer *> (UINTPTR_MAX));
     auto it = timers_.lower_bound(sentry);
@@ -105,6 +105,13 @@ std::vector<Netlib::TimerQueue::Entry> Netlib::TimerQueue::getExpired(Netlib::Ti
     std::copy(timers_.begin(), it, std::back_inserter(expired));
     timers_.erase(timers_.begin(), it);
 
+    for (auto &a : expired) {
+        ActiveTimer timer(a.second, a.second->sequence());
+        size_t n = activeTimers_.erase(timer);
+        assert(n == 1);
+    }
+
+    assert(timers_.size() == activeTimers_.size());
     return expired;
 }
 
@@ -112,7 +119,8 @@ void Netlib::TimerQueue::reset(const std::vector<Netlib::TimerQueue::Entry> &exp
     TimeStamp nextExpire;
 
     for (auto it = expired.begin(); it != expired.end(); ++it) {
-        if (it->second->repeat()) {
+        ActiveTimer timer(it->second, it->second->sequence());
+        if (it->second->repeat() && (cancelingTimers_.find(timer) == cancelingTimers_.end())) {
             it->second->restart(now);
             insert(it->second);
         } else {
@@ -130,6 +138,8 @@ void Netlib::TimerQueue::reset(const std::vector<Netlib::TimerQueue::Entry> &exp
 }
 
 bool Netlib::TimerQueue::insert(Netlib::Timer *timer) {
+    loop_->assertInLoopThread();
+    assert(timers_.size() == activeTimers_.size());
     bool earliestChanged = false;
     TimeStamp when = timer->expiration();
     auto it = timers_.begin();
@@ -138,8 +148,16 @@ bool Netlib::TimerQueue::insert(Netlib::Timer *timer) {
         earliestChanged = true;
     }
 
-    std::pair<TimerList::iterator, bool> result = timers_.insert(std::make_pair(when, timer));
-    assert(result.second);
+    {
+        auto result = timers_.insert(std::make_pair(when, timer));
+        assert(result.second);
+    }
+    {
+        auto result = activeTimers_.insert(ActiveTimer(timer, timer->sequence()));
+        assert(result.second);
+    }
+
+    assert(timers_.size() == activeTimers_.size());
 
     return earliestChanged;
 }
@@ -151,9 +169,35 @@ void Netlib::TimerQueue::handleRead() {
 
     std::vector<Entry> expired = getExpired(now);
 
+    callingExpiredTimers_ = true;
+    cancelingTimers_.clear();
+
     for (auto it = expired.begin(); it != expired.end(); ++it) {
         it->second->run();
     }
+    callingExpiredTimers_ = false;
 
     reset(expired, now);
+}
+
+void Netlib::TimerQueue::canel(Netlib::TimerId timerId) {
+    loop_->runInLoop(std::bind(&TimerQueue::cancelInLoop, this, timerId));
+}
+
+void Netlib::TimerQueue::cancelInLoop(Netlib::TimerId timerId) {
+    loop_->assertInLoopThread();
+    assert(timers_.size() == activeTimers_.size());
+    ActiveTimer timer(timerId.value_, timerId.sequence_);
+    auto it = activeTimers_.find(timer);
+
+    if (it != activeTimers_.end()) {
+        size_t n = timers_.erase(Entry(it->first->expiration(), it->first));
+        assert(n == 1);
+        delete it->first;
+        activeTimers_.erase(it);
+    } else if (callingExpiredTimers_) {
+        cancelingTimers_.insert(timer);
+    }
+
+    assert(timers_.size() == activeTimers_.size());
 }

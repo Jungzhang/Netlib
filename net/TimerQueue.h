@@ -13,6 +13,7 @@
 #include "../base/TimeStamp.h"
 #include "Channel.h"
 #include "Timer.h"
+#include "TimerId.h"
 
 namespace Netlib {
 
@@ -30,16 +31,20 @@ namespace Netlib {
         ~TimerQueue();
 
         // 撤销定时任务
-//        void canel(TimerId timerId);
+        void canel(TimerId timerId);
         // 添加定时任务
         TimerId addTimer(const TimerCallback &cb, TimeStamp when, double interval);
 
     private:
         typedef std::pair<TimeStamp, Timer *>  Entry;
         typedef std::set<Entry> TimerList;
+        typedef std::pair<Timer*, int64_t > ActiveTimer;
+        typedef std::set<ActiveTimer> ActiveTimerSet;
 
         // 保证线程安全
         void addTimerInLoop(Timer *timer);
+        // 在所属的EventLoop中取消Timer
+        void cancelInLoop(TimerId timerId);
 
         // 分发事件
         void handleRead();
@@ -49,11 +54,15 @@ namespace Netlib {
 
         bool insert(Timer *timer);
 
+    private:
         EventLoop *loop_;
         const int timerfd_;
         Channel timerfdChannel_;
         TimerList timers_;
 
+        std::atomic_bool callingExpiredTimers_;
+        ActiveTimerSet activeTimers_;
+        ActiveTimerSet cancelingTimers_;
     };
 }
 

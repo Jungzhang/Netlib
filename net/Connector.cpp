@@ -13,7 +13,7 @@
 
 namespace Netlib {
 
-    const int Connector::kMaxRetDelayMs = 30 * 1000;
+    const int Connector::kMaxRetDelayMs;
 
 
     Connector::Connector(EventLoop *loop, const InetAddress &serverAddr)

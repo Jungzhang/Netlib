@@ -38,7 +38,7 @@ namespace Netlib {
     private:
         enum States { kDisconnected, kConnecting, kConnected};
         static const int kInitRetryDelayMs = 500;               // 初始的重试时间间隔
-        static const int kMaxRetDelayMs = 30 * 1000;            // 最大的重试时间间隔
+        static const int kMaxRetDelayMs = 30 * 1000;                        // 最大的重试时间间隔
 
         void setState(States s);
         void startInLoop();
