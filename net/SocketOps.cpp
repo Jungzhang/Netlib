@@ -141,7 +141,7 @@ struct sockaddr_in Netlib::sockets::getPeerAddr(int sockfd) {
     struct sockaddr_in peeraddr;
     bzero(&peeraddr, sizeof(peeraddr));
     socklen_t len = sizeof(peeraddr);
-    if (::getsockname(sockfd, (sockaddr *) &peeraddr, &len) < 0) {
+    if (::getpeername(sockfd, (sockaddr *) &peeraddr, &len) < 0) {
         fprintf(stderr, "The called getsockname filed\n");
     }
     return peeraddr;

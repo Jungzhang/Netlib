@@ -1,23 +1,34 @@
+/*************************************************************************
+	> File Name: testTcpClient.cpp
+	> Author: Jung
+	> Mail: jungzhang@xiyoulinux.org
+	> Description:
+ ************************************************************************/
 #include <iostream>
 #include <thread>
-#include "net/EventLoop.h"
-#include "net/InetAddress.h"
-#include "net/TcpClient.h"
-#include "net/TcpConnection.h"
+#include "../../net/EventLoop.h"
+#include "../../net/InetAddress.h"
+#include "../../net/TcpClient.h"
+#include "../../net/TcpConnection.h"
 
 Netlib::EventLoop *g_loop;
 
 void sendMessage(const Netlib::TcpConnectionPtr &conn) {
     std::string buf;
+    bool flag = true;
 
     while (std::cin >> buf) {
         if (conn->connected()) {
             conn->send(buf);
         } else {
+            flag = false;
             printf("发送失败，还未连接上服务器");
+            break;
         }
     }
-    g_loop->quit();
+    if (flag) {
+        g_loop->quit();
+    }
 }
 
 void onConnection(const Netlib::TcpConnectionPtr &conn) {
