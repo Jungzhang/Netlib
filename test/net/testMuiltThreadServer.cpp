@@ -30,10 +30,11 @@ int main() {
     Netlib::InetAddress inetAddress(9001);
 
     Netlib::EventLoop eventLoop;
+    eventLoop.setTimeoutMs(-1);
     Netlib::TcpServer tcpServer(&eventLoop, inetAddress);
     tcpServer.setConnectionCallback(onConnection);
     tcpServer.setMessageCallback(onMessage);
-    tcpServer.setThreadNum(4);
+    tcpServer.setThreadNum(4);      // 设置多线程数,如果不设置就是单线程
     tcpServer.start();
     eventLoop.loop();
 

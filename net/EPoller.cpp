@@ -30,7 +30,7 @@ Netlib::TimeStamp Netlib::EPoller::poll(int timeoutMs, Netlib::EPoller::ChannelL
     int numEvents = ::epoll_wait(epollfd_, events_.data(), static_cast<int>(events_.size()), timeoutMs);
     TimeStamp now(TimeStamp::now());
 
-    if (numEvents < 0) {
+    if (numEvents > 0) {
         fillActiveChannels(numEvents, activeChannels);
         if (numEvents == events_.size()) {
             events_.resize(events_.size() * 2);

@@ -28,9 +28,14 @@ namespace Netlib{
         // 启动事件循环
         EventLoop *startLoop();
 
+        // 设置超时
+        void setTimeoutMs(int ms) {
+            ms_ = ms;
+        }
+
     private:
         // 线程函数
-        void threadFunc();
+        void threadFunc(int ms);
 
     private:
         EventLoop *loop_;
@@ -38,6 +43,7 @@ namespace Netlib{
         std::unique_ptr<std::thread > thread_;
         std::mutex mutex_;
         std::condition_variable_any cond_;
+        int ms_ = 1000;
     };
 }
 

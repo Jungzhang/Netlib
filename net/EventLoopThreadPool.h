@@ -26,9 +26,13 @@ namespace Netlib {
         void setThreadNum(int numThreads);
         void start();
         EventLoop *getNextLoop();
+        void setTimeoutMs(int ms) {
+            ms_ = ms;
+        }
 
     private:
         EventLoop *baseLoop_;
+        int ms_ = 1000;
         bool started_;
         int numThreads_;
         int next_;

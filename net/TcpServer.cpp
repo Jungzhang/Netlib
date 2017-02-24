@@ -28,6 +28,7 @@ Netlib::TcpServer::~TcpServer() { }
 void Netlib::TcpServer::start() {
     if (!started_) {
         started_ = true;
+        threadPool_->setTimeoutMs(loop_->getTimeoutMs());
         threadPool_->start();
     }
 

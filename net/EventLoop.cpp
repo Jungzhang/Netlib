@@ -38,8 +38,7 @@ IgnoreSigPipe ignoreSigPipe;
 
 namespace Netlib {
 
-    EventLoop::EventLoop(int ms) : looping_(false),
-                                   kPollTimeMs_(ms),
+    EventLoop::EventLoop() : looping_(false),
                                    poller_(new EPoller(this)),
                                    // poller_(new Poller(this)), // poll实现
                                    wakeupFd_(createEventfd()),

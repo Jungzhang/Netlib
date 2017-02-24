@@ -35,7 +35,7 @@ namespace Netlib {
         // 从非IO线程挪进IO线程的任务
         typedef std::function<void ()> Functor;
 
-        EventLoop(int ms  = 1000);
+        EventLoop();
         ~EventLoop();
         void loop();
         void quit();
@@ -62,6 +62,14 @@ namespace Netlib {
         TimerId runAfter(double delay, const TimerCallback &cb);
         // 以固定的时间间隔反复调用超时回调函数
         TimerId runEvery(double interval, const TimerCallback &cb);
+        // 设置超时时间
+        void setTimeoutMs(int ms) {
+            kPollTimeMs_ = ms;
+        }
+        // 返回超时时间
+        int getTimeoutMs() {
+            return kPollTimeMs_;
+        }
 
         // 唤醒IO线程
         void wakeup();
@@ -92,7 +100,7 @@ namespace Netlib {
 //        std::unique_ptr<Poller> poller_;            // 拥有的Poller对象（内部实现是poll）
         std::unique_ptr<EPoller> poller_;
         std::unique_ptr<TimerQueue> timerQueue_;    // 拥有的定时器对象
-        const int kPollTimeMs_;                     // Poller的超时时间
+        int kPollTimeMs_ = 1000;                    // Poller的超时时间
         std::atomic_bool callingPendingFunctors_;   // 是否正在调用从用户线程中挪过来的任务
         int wakeupFd_;                              // 唤醒IO线程的文件描述符
         std::unique_ptr<Channel> wakeupChannel_;    // 唤醒后的事件分发器

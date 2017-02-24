@@ -16,7 +16,7 @@ Netlib::EventLoopThread::~EventLoopThread() {
 }
 
 Netlib::EventLoop *Netlib::EventLoopThread::startLoop() {
-    thread_.reset(new std::thread(std::bind(&EventLoopThread::threadFunc, this)));
+    thread_.reset(new std::thread(std::bind(&EventLoopThread::threadFunc, this, ms_)));
     {
         std::lock_guard<std::mutex> locker(mutex_);
         while (loop_ == nullptr) {
@@ -27,10 +27,11 @@ Netlib::EventLoop *Netlib::EventLoopThread::startLoop() {
     return loop_;
 }
 
-void Netlib::EventLoopThread::threadFunc() {
+void Netlib::EventLoopThread::threadFunc(int ms) {
     EventLoop loop;
     {
         std::lock_guard<std::mutex> locker(mutex_);
+        loop.setTimeoutMs(ms);
         loop_ = &loop;
         cond_.notify_all();
     }

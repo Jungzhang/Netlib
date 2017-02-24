@@ -30,6 +30,7 @@ namespace Netlib {
         for (int i = 0; i < numThreads_; ++i) {
             // 创建EvEntLoop线程对象
             std::unique_ptr<EventLoopThread> t(new EventLoopThread);
+            t->setTimeoutMs(ms_);
             threads_.push_back(std::move(t));
             // 保存创建出来的EventLoop的指针
             loops_.push_back(threads_[threads_.size() - 1]->startLoop());
