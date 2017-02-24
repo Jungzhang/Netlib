@@ -21,7 +21,8 @@ namespace Netlib {
     static int createEventfd();
 
     class Channel;
-    class Poller;
+//    class Poller; // 内部实现是poll
+    class EPoller;  // 内部实现是epoll
     class TimerQueue;
 
     class EventLoop {
@@ -88,7 +89,8 @@ namespace Netlib {
         const pthread_t threadId_;                  // 所属线程的ID
         TimeStamp pollReturnTime_;                  // poll返回的时间
         ChannelList activeChannels;                 // 保存有活动的Channel列表
-        std::unique_ptr<Poller> poller_;            // 拥有的Poller对象
+//        std::unique_ptr<Poller> poller_;            // 拥有的Poller对象（内部实现是poll）
+        std::unique_ptr<EPoller> poller_;
         std::unique_ptr<TimerQueue> timerQueue_;    // 拥有的定时器对象
         const int kPollTimeMs_;                     // Poller的超时时间
         std::atomic_bool callingPendingFunctors_;   // 是否正在调用从用户线程中挪过来的任务

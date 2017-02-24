@@ -6,7 +6,8 @@
 
 #include <thread>
 #include <assert.h>
-#include "Poller.h"
+//#include "Poller.h"    // poll实现
+#include "EPoller.h"     // epoll实现
 #include "EventLoop.h"
 #include "../base/Thread.h"
 #include "TimerQueue.h"
@@ -39,7 +40,8 @@ namespace Netlib {
 
     EventLoop::EventLoop(int ms) : looping_(false),
                                    kPollTimeMs_(ms),
-                                   poller_(new Poller(this)),
+                                   poller_(new EPoller(this)),
+                                   // poller_(new Poller(this)), // poll实现
                                    wakeupFd_(createEventfd()),
                                    timerQueue_(new TimerQueue(this)),
                                    wakeupChannel_(new Channel(this, wakeupFd_)),

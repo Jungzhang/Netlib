@@ -43,7 +43,30 @@ Netlib::TimeStamp Netlib::EPoller::poll(int timeoutMs, Netlib::EPoller::ChannelL
 }
 
 void Netlib::EPoller::updateChannel(Netlib::Channel *channel) {
-
+    assertInLoopThread();
+    const int index = channel->index();
+    if (index == kNew || index ==kDelete) {
+        int fd = channel->fd();
+        if (index == kNew) {
+            assert(channels_.find(fd) == channels_.end());
+            channels_[fd] = channel;
+        } else {
+            assert(channels_.find(fd) != channels_.end());
+        }
+        channel->setIndex(kAdded);
+        update(EPOLL_CTL_ADD, channel);
+    } else {
+        int fd = channel->fd();
+        assert(channels_.find(fd) != channels_.end());
+        assert(channels_[fd] == channel);
+        assert(index == kAdded);
+        if (channel->isNoneEvent()) {
+            update(EPOLL_CTL_DEL, channel);
+            channel->setIndex(kDelete);
+        } else {
+            update(EPOLL_CTL_MOD, channel);
+        }
+    }
 }
 
 void Netlib::EPoller::removeChannel(Netlib::Channel *channel) {
@@ -64,17 +87,28 @@ void Netlib::EPoller::removeChannel(Netlib::Channel *channel) {
 }
 
 void Netlib::EPoller::assertInLoopThread() {
-
+    ownerLoop_->assertInLoopThread();
 }
 
 void Netlib::EPoller::fillActiveChannels(int numEvents, Netlib::EPoller::ChannelList *activeChannels) const {
-
+    assert(numEvents <= events_.size());
+    for (int i = 0; i < numEvents; ++i) {
+        Channel *channel = static_cast<Channel *> (events_[i].data.ptr);
+#ifndef NDEBUG
+        int fd = channel->fd();
+        ChannelMap::const_iterator it = channels_.find(fd);
+        assert(it != channels_.end());
+        assert(it->second == channel);
+#endif
+        channel->setRevents(events_[i].events);
+        activeChannels->push_back(channel);
+    }
 }
 
 void Netlib::EPoller::update(int operation, Netlib::Channel *channel) {
     struct epoll_event event;
     bzero(&event, sizeof(event));
-    event.events = channel->events();
+    event.events = static_cast<uint32_t >(channel->events());
     event.data.ptr = channel;
     int fd = channel->fd();
 
