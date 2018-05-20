@@ -22,7 +22,6 @@ void sendMessage(const Netlib::TcpConnectionPtr &conn) {
             conn->send(buf);
         } else {
             flag = false;
-            printf("发送失败，还未连接上服务器");
             break;
         }
     }
@@ -30,7 +29,6 @@ void sendMessage(const Netlib::TcpConnectionPtr &conn) {
         g_loop->quit();
     }
 }
-
 void onConnection(const Netlib::TcpConnectionPtr &conn) {
     if (conn->connected()) {
         std::thread t(sendMessage, conn);
@@ -39,27 +37,18 @@ void onConnection(const Netlib::TcpConnectionPtr &conn) {
         printf("关闭了 %s \n", conn->name().c_str());
     }
 }
-
-
 void onMessage(const Netlib::TcpConnectionPtr &conn, Netlib::Buffer *buffer, Netlib::TimeStamp re) {
     printf("%s\n", buffer->retrieveAllAsString().c_str());
 }
-
 int main() {
-
     Netlib::EventLoop loop;
     g_loop = &loop;
     Netlib::InetAddress serverAddr("localhost", 9001);
     Netlib::TcpClient client(&loop, serverAddr);
-
     client.setConnectionCallback(onConnection);
     client.setMessageCallback(onMessage);
     client.enableRetry();
     client.connect();
-
     loop.loop();
-
-    std::cout << "Hello World!" << std::endl;
-
     return 0;
 }
